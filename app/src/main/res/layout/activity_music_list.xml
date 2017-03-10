@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/include_common_title_bar" />
+
+    <yb.com.magicplayer.weights.ResultListView
+        android:id="@+id/id_music_list_listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/id_common_title_bar"
+        android:layout_marginTop="5dp"
+        android:background="@color/color_FBFBFB"
+        android:cacheColorHint="@android:color/transparent"
+        android:divider="@color/color_FBFBFB"
+        android:dividerHeight="2dp"
+        android:fadingEdge="none"
+        android:fadingEdgeLength="0.0dip"
+        android:footerDividersEnabled="false"
+        android:headerDividersEnabled="true"
+        android:listSelector="#00000000" />
+
+    <TextView
+        android:id="@+id/id_music_list_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/id_common_title_bar"
+        android:gravity="center"
+        android:text="暂无音乐"
+        android:textSize="12dp"
+        android:visibility="gone" />
+</RelativeLayout>
