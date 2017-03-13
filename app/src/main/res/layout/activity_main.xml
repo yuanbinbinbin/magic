@@ -5,14 +5,13 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/id_local"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:gravity="center"
         android:onClick="startLocalMusic"
-        android:text="LocalMusic" />
+        android:text="LocalMusic"
+        android:textSize="16dp"
+        android:textColor="#000"/>
 
-    <yb.com.magicplayer.view.SvgView
-        android:id="@+id/svg"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 </RelativeLayout>

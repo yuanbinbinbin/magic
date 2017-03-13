@@ -4,7 +4,5 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" viewBox="0 0 512 512">
 <g id="icomoon-ignore">
 </g>
-<path d="M150 0 L75 200 L225 200 Z"></path>
-<path d=" M442 410 H449L448 0H442V410Z"></path>
-
+<path d="M40 7c65.333 0 130.333 -0.166992 195 -0.5s129.667 -0.5 195 -0.5v-6h-396v647h6v-640z" ></path>
 </svg>
