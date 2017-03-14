@@ -4,11 +4,15 @@ import android.animation.Animator;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import yb.com.magicplayer.R;
 import yb.com.magicplayer.utils.ActivityUtil;
+import yb.com.magicplayer.utils.ConfigData;
+import yb.com.magicplayer.utils.DateUtil;
 import yb.com.magicplayer.utils.GlobalVariables;
 import yb.com.magicplayer.utils.MediaUtils;
+import yb.com.magicplayer.utils.PreferencesUtils;
 import yb.com.magicplayer.view.shimmer.Shimmer;
 import yb.com.magicplayer.view.shimmer.ShimmerTextView;
 
@@ -16,6 +20,7 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
     private ShimmerTextView mSTv;
     private Shimmer shimmer;
     private boolean isPrepared;
+    private TextView mTvData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,10 +38,12 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
     @Override
     protected void initView() {
         mSTv = (ShimmerTextView) findViewById(R.id.id_welcome_content);
+        mTvData = (TextView) findViewById(R.id.id_welcome_data);
     }
 
     @Override
     protected void initData() {
+        initViewContent();
         startAnim();
         isPrepared = false;
         new Thread(new Runnable() {
@@ -53,6 +60,16 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
         }).start();
     }
 
+    /**
+     * 初始化TextView内容
+     */
+    private void initViewContent() {
+        String content = PreferencesUtils.loadPrefString(this, GlobalVariables.KEY_WELCOME_CONTENT, GlobalVariables.DEFAULT_WELCOME_CONTENT);
+        mSTv.setText(content);
+        String data = PreferencesUtils.loadPrefString(this, GlobalVariables.KEY_WELCOME_DATA, DateUtil.DateFormat1(DateUtil.getNow()));
+        mTvData.setText(data);
+    }
+
     private void startAnim() {
         shimmer = new Shimmer();
         shimmer.setAnimatorListener(this);
@@ -61,6 +78,7 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
     }
 
     private void prepareThings() {
+        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(this, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_ALL);
         GlobalVariables.listLocalMusic = MediaUtils.getLocalMusics(this);
         chackFile();
     }
@@ -94,8 +112,8 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
     public void onAnimationEnd(Animator animation) {
         if (isPrepared) {
             shimmer.cancel();
-            //ActivityUtil.startActivity(getContext(), MainActivity.class);
-          //  finish();
+            ActivityUtil.startActivity(getContext(), MainActivity.class);
+            finish();
         } else {
             startAnim();
         }

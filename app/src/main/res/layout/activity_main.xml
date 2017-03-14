@@ -12,6 +12,6 @@
         android:onClick="startLocalMusic"
         android:text="LocalMusic"
         android:textSize="16dp"
-        android:textColor="#000"/>
+        android:textColor="#fff"/>
 
 </RelativeLayout>

@@ -22,4 +22,9 @@ public class GlobalVariables {
     public static int localMusicDownloadCount = 0;
     public static final String FONT_PATH = "font";
     public static final String FONT_NAME = "slim.ttf";
+
+    public static final String KEY_WELCOME_CONTENT = "key_welcome_content";
+    public static final String DEFAULT_WELCOME_CONTENT = "MAGIC";
+    public static final String KEY_WELCOME_DATA = "key_welcome_data";
+    public static final String KEY_PLAYING_MODEL = "key_playing_model";
 }

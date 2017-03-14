@@ -8,9 +8,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/id_welcome_data"
-        android:layout_marginBottom="5dp"
         android:layout_centerHorizontal="true"
-        android:text="Magic Player"
+        android:layout_marginBottom="5dp"
+        android:fontFamily="sans-serif-light"
+        android:text="MAGIC"
         android:textColor="@color/color_text_default"
         android:textSize="25sp" />
 
@@ -19,7 +20,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="2017.03.13 你好"
+        android:fontFamily="sans-serif-light"
+        android:text="2017.03.13"
         android:textColor="@color/color_text_default"
         android:textSize="16sp" />
 

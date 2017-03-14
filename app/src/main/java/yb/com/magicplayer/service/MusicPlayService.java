@@ -12,10 +12,12 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.audiofx.Visualizer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.RemoteViews;
 
@@ -26,10 +28,12 @@ import java.util.Random;
 import yb.com.magicplayer.R;
 import yb.com.magicplayer.activity.MainActivity;
 import yb.com.magicplayer.entity.LocalMusic;
+import yb.com.magicplayer.utils.ConfigData;
 import yb.com.magicplayer.utils.GlobalVariables;
 import yb.com.magicplayer.utils.MediaUtils;
+import yb.com.magicplayer.utils.PreferencesUtils;
 
-public class MusicPlayService extends Service {
+public class MusicPlayService extends Service implements OnCompletionListener, Visualizer.OnDataCaptureListener, MediaPlayer.OnPreparedListener {
 
     private LocalMusic playingmusic;
 
@@ -44,28 +48,34 @@ public class MusicPlayService extends Service {
     private int playingId;
 
     private Intent mIntent;
-    private int playingMode;
-
-    private MyThread mThread;
-
     private Intent broadcastIntent;
     private Intent refreshTimeIntent;
     private int playingposition;
     private MyBinder myBinder = new MyBinder();
     private ImageView mIvMusicImg;
+    private MediaPlayer mp;  //用于音乐波荡
+    private int positon;   //音乐播放的位置
+    private Visualizer mVisualizer;//用于获取音乐频率
 
     @Override
     public void onCreate() {
-        playingmusic = new LocalMusic();
-        getMusicInfoFromSharedPreference();
+        //getMusicInfoFromSharedPreference();
+        initData();
+        initMediaPlayer();//初始化播放器
+        initIntent();
+        initNotification();
+    }
 
-        mThread = new MyThread();
-        mThread.start();
-        // 获取上次关闭时所播放歌曲的信息必须在mThread和mListLocalMusics定义之后
+    private void initData() {
+    }
 
-        playingId = -1;
+    private void initIntent() {
         mIntent = new Intent(this, MusicPlayService.class);
+        broadcastIntent = new Intent("RefreshInfor");
+        refreshTimeIntent = new Intent("RefreshTime");
+    }
 
+    private void initNotification() {
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mRemoteViews = new RemoteViews(getPackageName(),
                 R.layout.notification_playing_status);
@@ -83,11 +93,6 @@ public class MusicPlayService extends Service {
                                 MusicPlayService.class).putExtra("playing",
                                 "start"), PendingIntent.FLAG_UPDATE_CURRENT))
                 .setContent(mRemoteViews);
-
-        playingMode = GlobalVariables.playingMode;
-
-        broadcastIntent = new Intent("RefreshInfor");
-        refreshTimeIntent = new Intent("RefreshTime");
     }
 
     @Override
@@ -95,26 +100,22 @@ public class MusicPlayService extends Service {
         if (intent != null) {
             String playing = intent.getStringExtra("playing");
             if ("close".equals(playing)) {
-                Intent intent2 = new Intent("finish");
-                sendBroadcast(intent2);
                 mNotificationManager.cancel(666);
                 stopSelf();
             } else if ("start".equals(playing)) {
                 reStartActivity();
             } else {
-                mThread.refreshPlayer(intent);
+                refreshPlayer(intent);
             }
         }
         return super.onStartCommand(intent, flags, startId);
     }
 
     private void reStartActivity() {
-
         Intent intent = new Intent(getApplicationContext(),
                 MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_NEW_TASK);
-
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         List<RunningTaskInfo> tasks = manager
                 .getRunningTasks(Integer.MAX_VALUE);
@@ -209,199 +210,170 @@ public class MusicPlayService extends Service {
 
     @Override
     public void onDestroy() {
-        mThread.stopThread();
-        System.out.println("MusicPlayService--------------------onDestroy()");
-        SharedPreferences mPreferences = getSharedPreferences("iplayer",
-                Context.MODE_PRIVATE);
-        Editor mEditor = mPreferences.edit();
-        System.out.println("playinglocalmusicid" + playingmusic.getName());
-        mEditor.putInt("playinglocalmusicid", playingmusic.getId());
-        mEditor.commit();
+        releasePlayer();
+        PreferencesUtils.savePrefInt(this, "playinglocalmusicid", playingmusic.getId());
         super.onDestroy();
         System.exit(0);
     }
 
     private void getMusicInfoFromSharedPreference() {
-        SharedPreferences mPreferences = getSharedPreferences("iplayer",
-                Context.MODE_PRIVATE);
-        int playingLocalMusicId = mPreferences
-                .getInt("playinglocalmusicid", -1);
+
+        playingId = PreferencesUtils.loadPrefInt(this, "playinglocalmusicid", -1);
         playingposition = MediaUtils.getPositionInLocalMusicList(
-                GlobalVariables.listLocalMusic, playingLocalMusicId);
+                GlobalVariables.listLocalMusic, playingId);
 
         if (playingposition != -1) {
             playingmusic = GlobalVariables.listLocalMusic.get(playingposition);
         } else {
             if (GlobalVariables.listLocalMusic == null || GlobalVariables.listLocalMusic.size() <= 0)
-                playingmusic = null;
+                playingmusic = new LocalMusic();
             else
                 playingmusic = GlobalVariables.listLocalMusic.get(0);
         }
     }
 
-    class MyThread extends Thread implements OnCompletionListener {
-        private MediaPlayer mp;
-        private boolean flag;
-        private int positon;
 
-        public MyThread() {
-            mp = new MediaPlayer();
-            flag = true;
-            positon = -1;
-            mp.setOnCompletionListener(this);
-            if (playingposition != -1) {
-                mp.reset();
-                try {
-                    mp.setDataSource(playingmusic.getAddr());
-                    mp.prepare();
-                    positon = playingposition;
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                } catch (SecurityException e) {
-                    e.printStackTrace();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+    private void initMediaPlayer() {
+        mp = new MediaPlayer();
+        mp.setOnCompletionListener(this);
+        mp.setOnPreparedListener(this);
+        mVisualizer = new Visualizer(mp.getAudioSessionId());
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        mVisualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, true, true);
+        mVisualizer.setEnabled(false);
+    }
 
-        }
-
-        @Override
-        public void run() {
-            while (flag) {
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void refreshPlayer(Intent intent) {
-            String playing = intent.getStringExtra("playing");
-            if ("playingbyid".equals(playing)) {
-                int id = intent.getIntExtra("id", -1);
-                if (mp.isPlaying()) {
-                    if (playingmusic.getId() == id) {
-                        mp.pause();
-                        sendNotification(SEND_NOTIFICATION_PAUSE);
-                    } else {
-                        playingmusic = GlobalVariables.listLocalMusic.get(MediaUtils
-                                .getPositionInLocalMusicList(GlobalVariables.listLocalMusic,
-                                        id));
-                        positon = MediaUtils.getPositionInLocalMusicList(
-                                GlobalVariables.listLocalMusic, playingmusic.getId());
-                        playMusic();
-                    }
+    public void refreshPlayer(Intent intent) {
+        String playing = intent.getStringExtra("playing");
+        if ("playingbyid".equals(playing)) {
+            int id = intent.getIntExtra("id", -1);
+            if (playingmusic != null && mp.isPlaying()) {
+                if (playingmusic.getId() == id) {
+                    mp.pause();
+                    sendNotification(SEND_NOTIFICATION_PAUSE);
                 } else {
-                    if (playingmusic.getId() == id) {
-                        mp.start();
-                        sendNotification(SEND_NOTIFICATION_PLAY);
-                    } else {
-                        playingmusic = GlobalVariables.listLocalMusic.get(MediaUtils
-                                .getPositionInLocalMusicList(GlobalVariables.listLocalMusic,
-                                        id));
-                        positon = MediaUtils.getPositionInLocalMusicList(
-                                GlobalVariables.listLocalMusic, playingmusic.getId());
-                        playMusic();
-                    }
+                    positon = MediaUtils.getPositionInLocalMusicList(GlobalVariables.listLocalMusic, id);
+                    playingmusic = GlobalVariables.listLocalMusic.get(positon);
+                    playMusic();
+                    sendNotification(SEND_NOTIFICATION_PLAY);
                 }
-                return;
+            } else {
+                if (playingmusic != null && playingmusic.getId() == id) {
+                    mp.start();
+                    sendNotification(SEND_NOTIFICATION_PLAY);
+                } else {
+                    positon = MediaUtils.getPositionInLocalMusicList(GlobalVariables.listLocalMusic, id);
+                    playingmusic = GlobalVariables.listLocalMusic.get(positon);
+                    playMusic();
+                    sendNotification(SEND_NOTIFICATION_PLAY);
+                }
             }
-            positon = MediaUtils.getPositionInLocalMusicList(GlobalVariables.listLocalMusic,
-                    playingmusic.getId());
-            if ("next".equals(playing)) {
-                positon++;
-                positon = positon % GlobalVariables.listLocalMusic.size();
-                playingmusic = GlobalVariables.listLocalMusic.get(positon);
-                playMusic();
-                sendNotification(SEND_NOTIFICATION_PLAY);
-                return;
-            }
-            if ("pause".equals(playing)) {
-                mp.pause();
-                sendNotification(SEND_NOTIFICATION_PAUSE);
-                return;
-            }
-            if ("play".equals(playing)) {
-                mp.start();
-                sendNotification(SEND_NOTIFICATION_PLAY);
-                return;
-            }
-            if ("last".equals(playing)) {
-                positon--;
-                if (positon == -1)
-                    positon = GlobalVariables.listLocalMusic.size() - 1;
-                playingmusic = GlobalVariables.listLocalMusic.get(positon);
-                playMusic();
-                sendNotification(SEND_NOTIFICATION_PLAY);
-                return;
-            }
-            if ("changetime".equals(playing)) {
-                int time = intent.getIntExtra("time", 0);
+        } else if ("next".equals(playing)) {
+            positon++;
+            positon = positon % GlobalVariables.listLocalMusic.size();
+            playingmusic = GlobalVariables.listLocalMusic.get(positon);
+            playMusic();
+            sendNotification(SEND_NOTIFICATION_PLAY);
+            return;
+        } else if ("pause".equals(playing)) {
+            mp.pause();
+            sendNotification(SEND_NOTIFICATION_PAUSE);
+            return;
+        } else if ("play".equals(playing)) {
+            mp.start();
+            sendNotification(SEND_NOTIFICATION_PLAY);
+            return;
+        } else if ("last".equals(playing)) {
+            positon--;
+            if (positon == -1)
+                positon = GlobalVariables.listLocalMusic.size() - 1;
+            playingmusic = GlobalVariables.listLocalMusic.get(positon);
+            playMusic();
+            sendNotification(SEND_NOTIFICATION_PLAY);
+            return;
+        } else if ("changetime".equals(playing)) {
+            int time = intent.getIntExtra("time", -1);
+            if (time >= 0) {
                 mp.seekTo(time * 1000);
                 sendBroadcast(refreshTimeIntent);
             }
         }
+    }
 
-        private void playMusic() {
+    private void playMusic() {
+        try {
             mp.reset();
-            try {
-                mp.setDataSource(playingmusic.getAddr());
-                mp.prepare();
-                mp.start();
-            } catch (IllegalArgumentException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (SecurityException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            mp.setDataSource(playingmusic.getAddr());
+            mp.prepareAsync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        if (mVisualizer != null) {
+            mVisualizer.setEnabled(false);
+        }
+        switch (GlobalVariables.playingMode) {
+            case ConfigData.PLAYING_MUSIC_MODE_ONLY:// 单曲循环
+                playMusic();
+                break;
+            case ConfigData.PLAYING_MUSIC_MODE_ALL:// 顺序循环
+                positon++;
+                positon = positon % GlobalVariables.listLocalMusic.size();
+                playingmusic = GlobalVariables.listLocalMusic.get(positon);
+                playMusic();
+                break;
+            case ConfigData.PLAYING_MUSIC_MODE_RANDOM://随机播放
+                Random random = new Random();
+                positon = random.nextInt(GlobalVariables.listLocalMusic.size());
+                playingmusic = GlobalVariables.listLocalMusic.get(positon);
+                playMusic();
+                break;
+        }
+
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        playingId = playingmusic.getId();
+        this.mp.start();
+        mVisualizer.setEnabled(true);
+        sendNotification(SEND_NOTIFICATION_PLAY);
+    }
+
+    public void releasePlayer() {
+        mp.release();
+        mVisualizer.setEnabled(false);
+        mp = null;
+        mVisualizer = null;
+    }
+
+    public boolean isPlaying() {
+        return mp.isPlaying();
+    }
+
+    public int getPlayingPosition() {
+        return mp.getCurrentPosition() / 1000;
+    }
+
+    @Override
+    public void onWaveFormDataCapture(Visualizer visualizer, byte[] waveform, int samplingRate) {
+
+    }
+
+    @Override
+    public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+        if (fft != null && fft.length > 0) {
+            byte[] model = new byte[fft.length / 2 + 1];
+            model[0] = (byte) Math.abs(fft[1]);
+            int j = 1;
+            for (int i = 2; i < fft.length - 1; ) {
+                model[j] = (byte) Math.hypot(fft[i], fft[i + 1]);
+                i += 2;
+                j++;
             }
-            sendNotification(SEND_NOTIFICATION_PLAY);
-        }
-
-        @Override
-        public void onCompletion(MediaPlayer mp) {
-            switch (playingMode) {
-                case 0:// 单曲循环
-                    playMusic();
-                    break;
-                case 1:// 顺序循环
-                    positon++;
-                    positon = positon % GlobalVariables.listLocalMusic.size();
-                    playingmusic = GlobalVariables.listLocalMusic.get(positon);
-                    playMusic();
-                    break;
-                case 2://随机播放
-                    Random random = new Random();
-                    positon = random.nextInt(GlobalVariables.listLocalMusic.size());
-                    playingmusic = GlobalVariables.listLocalMusic.get(positon);
-                    playMusic();
-                    break;
-            }
-
-        }
-
-        public void stopThread() {
-            mp.release();
-            flag = false;
-        }
-
-        public boolean isPlaying() {
-            return mp.isPlaying();
-        }
-
-        public int getPlayingPosition() {
-            System.out.println("getposition------------------");
-            return mp.getCurrentPosition() / 1000;
         }
     }
 
@@ -411,11 +383,12 @@ public class MusicPlayService extends Service {
         }
 
         public boolean isPlayingLocalMusic() {
-            return mThread.isPlaying();
+            return isPlaying();
         }
 
         public int getPlayingPosition() {
-            return mThread.getPlayingPosition();
+            return getPlayingPosition();
         }
     }
+
 }

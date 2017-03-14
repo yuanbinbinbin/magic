@@ -112,8 +112,7 @@ public class MusicListActivity extends BaseActivity implements ResultListView.On
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            GlobalVariables.listLocalMusic = MediaUtils
-                    .getLocalMusics(MusicListActivity.this);
+            GlobalVariables.listLocalMusic = MediaUtils.getLocalMusics(MusicListActivity.this);
             refreshHandler.sendEmptyMessage(0);
         }
     };
