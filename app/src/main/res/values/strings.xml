@@ -7,4 +7,7 @@
     <string name="string_result_list_view_already_end">已经没有了哦~</string>
     <string name="string_result_list_view_click_more">点击加载更多</string>
     <string name="string_result_list_view_already_finish">已经加载完毕</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

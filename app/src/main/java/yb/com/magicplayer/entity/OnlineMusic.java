@@ -1,6 +1,6 @@
 package yb.com.magicplayer.entity;
 
-public class LocalMusic {
+public class OnlineMusic {
     private int id;
     private String name;
     private String author;
@@ -11,7 +11,7 @@ public class LocalMusic {
     private String album;
     private String image;
 
-    public LocalMusic() {
+    public OnlineMusic() {
         this.name = "";
         this.author = "";
         this.album = "";
@@ -23,7 +23,7 @@ public class LocalMusic {
         this.album_id = 0;
     }
 
-    public LocalMusic(int id, String name, String author, int allTime, int size, String addr, int album_id, String album, String image) {
+    public OnlineMusic(int id, String name, String author, int allTime, int size, String addr, int album_id, String album, String image) {
         this.id = id;
         this.name = name;
         this.author = author;
@@ -105,20 +105,5 @@ public class LocalMusic {
 
     public void setAddr(String addr) {
         this.addr = addr;
-    }
-
-    @Override
-    public String toString() {
-        return "LocalMusic{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", author='" + author + '\'' +
-                ", allTime=" + allTime +
-                ", size=" + size +
-                ", addr='" + addr + '\'' +
-                ", album_id=" + album_id +
-                ", album='" + album + '\'' +
-                ", image='" + image + '\'' +
-                '}';
     }
 }

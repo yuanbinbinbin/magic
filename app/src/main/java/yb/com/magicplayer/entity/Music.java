@@ -1,88 +1,227 @@
 package yb.com.magicplayer.entity;
 
+/**
+ * 通用Music接口，用于最近播放、播放列表、喜欢等。
+ * Created by yb on 2017/3/16.
+ */
 public class Music {
-    private String name;
-    private String author;
-    private String image;
-    private int allTime;
-    private int size;
-    private int id;
-    private int album_id;
+    public static final int TYPE_LOCAL_MUSIC = 1;//本地音乐
+    public static final int TYPE_ONLINE_MUSIC = 2;//在线音乐
+    private int type;
+    private LocalMusic localMusic;
+    private OnlineMusic onlineMusic;
 
     public Music() {
-        this.name = "";
-        this.author = "";
-        this.image = null;
-        this.allTime = 0;
-        this.size = 0;
-        this.id = 0;
-        this.album_id = 0;
+        type = TYPE_LOCAL_MUSIC;
     }
 
-    public Music(int id, String name, String author, String image, int allTime, int size, int album_id) {
-        this.name = name;
-        this.author = author;
-        this.image = image;
-        this.allTime = allTime;
-        this.size = size;
-        this.id = id;
-        this.album_id = album_id;
+    public Music(int type, LocalMusic localMusic, OnlineMusic onlineMusic) {
+        this.type = type;
+        this.localMusic = localMusic;
+        this.onlineMusic = onlineMusic;
     }
 
     public int getAlbum_id() {
-        return album_id;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? -1 : localMusic.getAlbum_id();
+        } else {
+            return onlineMusic == null ? -1 : onlineMusic.getAlbum_id();
+        }
     }
 
     public void setAlbum_id(int album_id) {
-        this.album_id = album_id;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setAlbum_id(album_id);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setAlbum_id(album_id);
+            }
+        }
     }
 
     public int getId() {
-        return id;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? -1 : localMusic.getId();
+        } else {
+            return onlineMusic == null ? -1 : onlineMusic.getId();
+        }
     }
 
     public void setId(int id) {
-        this.id = id;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setId(id);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setId(id);
+            }
+        }
     }
 
     public int getAllTime() {
-        return allTime;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? -1 : localMusic.getAllTime();
+        } else {
+            return onlineMusic == null ? -1 : onlineMusic.getAllTime();
+        }
     }
 
     public void setAllTime(int allTime) {
-        this.allTime = allTime;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setAllTime(allTime);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setAllTime(allTime);
+            }
+        }
     }
 
     public int getSize() {
-        return size;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? -1 : localMusic.getSize();
+        } else {
+            return onlineMusic == null ? -1 : onlineMusic.getSize();
+        }
     }
 
     public void setSize(int size) {
-        this.size = size;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setSize(size);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setSize(size);
+            }
+        }
     }
 
     public String getName() {
-        return name;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? "" : localMusic.getName();
+        } else {
+            return onlineMusic == null ? "" : onlineMusic.getName();
+        }
     }
 
     public void setName(String name) {
-        this.name = name;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setName(name);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setName(name);
+            }
+        }
     }
 
     public String getAuthor() {
-        return author;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? "" : localMusic.getAuthor();
+        } else {
+            return onlineMusic == null ? "" : onlineMusic.getAuthor();
+        }
     }
 
     public void setAuthor(String author) {
-        this.author = author;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setAuthor(author);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setAuthor(author);
+            }
+        }
     }
 
     public String getImage() {
-        return image;
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? "" : localMusic.getImage();
+        } else {
+            return onlineMusic == null ? "" : onlineMusic.getImage();
+        }
     }
 
     public void setImage(String image) {
-        this.image = image;
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setImage(image);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setImage(image);
+            }
+        }
     }
 
+    public String getAlbum() {
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? "" : localMusic.getAlbum();
+        } else {
+            return onlineMusic == null ? "" : onlineMusic.getAlbum();
+        }
+    }
+
+    public void setAlbum(String album) {
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setAlbum(album);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setAlbum(album);
+            }
+        }
+    }
+
+    public String getAddr() {
+        if (type == TYPE_LOCAL_MUSIC) {
+            return localMusic == null ? "" : localMusic.getAddr();
+        } else {
+            return onlineMusic == null ? "" : onlineMusic.getAddr();
+        }
+    }
+
+    public void setAddr(String addr) {
+        if (type == TYPE_LOCAL_MUSIC) {
+            if (localMusic != null) {
+                localMusic.setAddr(addr);
+            }
+        } else {
+            if (onlineMusic != null) {
+                onlineMusic.setAddr(addr);
+            }
+        }
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public LocalMusic getLocalMusic() {
+        return localMusic;
+    }
+
+    public void setLocalMusic(LocalMusic localMusic) {
+        this.localMusic = localMusic;
+    }
+
+    public OnlineMusic getOnlineMusic() {
+        return onlineMusic;
+    }
+
+    public void setOnlineMusic(OnlineMusic onlineMusic) {
+        this.onlineMusic = onlineMusic;
+    }
 }

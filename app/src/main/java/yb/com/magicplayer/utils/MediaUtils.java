@@ -9,8 +9,11 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.text.TextUtils;
+import android.util.Log;
 
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,7 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import yb.com.magicplayer.R;
+import yb.com.magicplayer.entity.Album;
+import yb.com.magicplayer.entity.Artist;
 import yb.com.magicplayer.entity.LocalMusic;
+import yb.com.magicplayer.entity.Music;
+import yb.com.magicplayer.entity.MusicFolder;
+import yb.com.magicplayer.entity.PlayList;
 
 public class MediaUtils {
 
@@ -35,14 +43,15 @@ public class MediaUtils {
         for (int i = 0; i < mCursor.getCount(); i++) {
             if (mCursor.getInt(4) > ConfigData.MUSIC_SIZE_MIN) {
                 LocalMusic mLocalMusic = new LocalMusic(mCursor.getInt(0),
-                        mCursor.getString(1), mCursor.getString(2), null,
+                        mCursor.getString(1), mCursor.getString(2),
                         mCursor.getInt(3) / 1000, mCursor.getInt(4),
-                        mCursor.getString(5), mCursor.getInt(6));
-                mLocalMusic.setImage(getMusicImgUrl(mCursor.getInt(0), mCursor.getInt(6), true));
+                        mCursor.getString(5), mCursor.getInt(6), mCursor.getString(7), "");
+                //    mLocalMusic.setImage(getMusicImgUrl(mCursor.getInt(0), mCursor.getInt(6), true));
                 mList.add(mLocalMusic);
             }
             mCursor.moveToNext();
         }
+        mCursor.close();
         return PaiXuByZMu(mList);
     }
 
@@ -514,5 +523,174 @@ public class MediaUtils {
     private static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
     private static Bitmap mCachedBit = null;
 
+
+    public static void initMusic(Context context) {
+        long time = System.currentTimeMillis();
+        refreshLocalMusic(context);
+        long time2 = System.currentTimeMillis();
+        Log.e("test", "time:" + (time2 - time));
+        time = time2;
+        initSavedData(context);
+        time2 = System.currentTimeMillis();
+        Log.e("test", "time:" + (time2 - time));
+        time = time2;
+        initOtherData();
+        time2 = System.currentTimeMillis();
+        Log.e("test", "time:" + (time2 - time));
+    }
+
+    /**
+     * 更新本地音乐库
+     */
+    public static void refreshLocalMusic(Context context) {
+        GlobalVariables.listLocalMusic = getLocalMusics(context);
+        if (GlobalVariables.listLocalMusic == null) {
+            GlobalVariables.listLocalMusic = new ArrayList<LocalMusic>();
+        }
+    }
+
+    /**
+     * 初始话保存在本地的信息
+     *
+     * @param context
+     */
+    public static void initSavedData(Context context) {
+        //获取最近播放列表
+        String s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_RECENT_PLAY, "");
+        GlobalVariables.listRecentPlayMusic = FastJsonUtil.parseArray(s, Music.class);//最近播放音乐列表
+        //获取喜欢列表
+        s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_LIKED_MUSIC, "");
+        GlobalVariables.listLikedMusic = FastJsonUtil.parseArray(s, Music.class);
+        //获取播放列表
+        s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_PLAY_LIST);
+        GlobalVariables.listPlayList = FastJsonUtil.parseArray(s, PlayList.class);
+        //获取正在播放列表
+        s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_PLAY_QUENE);
+        GlobalVariables.playQuene = FastJsonUtil.parseArray(s, Music.class);
+        //获取正在播放位置
+        GlobalVariables.playingPosition = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAY_POSITION, 0);
+        //获取播放模式、顺序播放、单曲循环、随机播放
+        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_ALL);
+        if (GlobalVariables.listRecentPlayMusic == null) {
+            GlobalVariables.listRecentPlayMusic = new ArrayList<Music>();
+        }
+        if (GlobalVariables.listLikedMusic == null) {
+            GlobalVariables.listLikedMusic = new ArrayList<Music>();
+        }
+        //如果正在播放列表为空，则默认为播放本地列表
+        if (GlobalVariables.playQuene == null) {
+            GlobalVariables.playQuene = new ArrayList<Music>();
+            for (LocalMusic localMusic : GlobalVariables.listLocalMusic) {
+                if (localMusic != null) {
+                    GlobalVariables.playQuene.add(SafeConvertUtil.localMusic2Music(localMusic));
+                }
+            }
+        }
+        if (GlobalVariables.listPlayList == null) {
+            GlobalVariables.listPlayList = new ArrayList<PlayList>();
+        }
+    }
+
+    public static void initOtherData() {
+        if (GlobalVariables.listAlbum == null) {
+            GlobalVariables.listAlbum = new ArrayList<Album>();
+        }
+        if (GlobalVariables.listArtist == null) {
+            GlobalVariables.listArtist = new ArrayList<Artist>();
+        }
+        if (GlobalVariables.listFolder == null) {
+            GlobalVariables.listFolder = new ArrayList<MusicFolder>();
+        }
+        for (LocalMusic localMusic : GlobalVariables.listLocalMusic) {
+            if (localMusic != null) {
+                Music music = SafeConvertUtil.localMusic2Music(localMusic);
+                boolean isAdded = false;
+                //将music添加到相应的专辑中
+                for (Album album : GlobalVariables.listAlbum) {
+                    if (album != null && album.getName() != null && album.getName().equals(localMusic.getAlbum())) {
+                        if (isExist(album.getMusicList(), music) < 0) {
+                            album.getMusicList().add(music);
+                        }
+                        isAdded = true;
+                    }
+                }
+                if (!isAdded && !TextUtils.isEmpty(localMusic.getAlbum())) {
+                    Album album = new Album();
+                    album.setAlbumid(localMusic.getAlbum_id());
+                    album.setName(localMusic.getAlbum());
+                    album.getMusicList().add(music);
+                    GlobalVariables.listAlbum.add(album);
+                }
+                //将music添加到相应的歌手中
+                isAdded = false;
+                for (Artist artist : GlobalVariables.listArtist) {
+                    if (artist != null) {
+                        if (artist.getName().equals(localMusic.getAuthor())) {
+                            if (isExist(artist.getMusicList(), music) < 0) {
+                                artist.getMusicList().add(music);
+                            }
+                            isAdded = true;
+                        }
+                    }
+                }
+                if (!isAdded && !TextUtils.isEmpty(localMusic.getAuthor())) {
+                    Artist artist = new Artist();
+                    artist.setName(localMusic.getAuthor());
+                    artist.getMusicList().add(music);
+                    GlobalVariables.listArtist.add(artist);
+                }
+                //将music添加到文件夹中
+                isAdded = false;
+                File file = new File(localMusic.getAddr()).getParentFile();
+                for (MusicFolder musicFolder : GlobalVariables.listFolder) {
+                    if (musicFolder != null) {
+                        if (!TextUtils.isEmpty(musicFolder.getPath()) && musicFolder.getPath().equals(file.getAbsolutePath())) {
+                            if (isExist(musicFolder.getMusics(), localMusic) < 0) {
+                                musicFolder.getMusics().add(localMusic);
+                            }
+                            isAdded = true;
+                        }
+                    }
+                }
+                if (!isAdded) {
+                    MusicFolder musicFolder = new MusicFolder();
+                    musicFolder.setName(file.getName());
+                    musicFolder.setPath(file.getAbsolutePath());
+                    musicFolder.getMusics().add(localMusic);
+                    GlobalVariables.listFolder.add(musicFolder);
+                }
+            }
+        }
+    }
+
+    public static int isExist(List<Music> list, Music music) {
+        if (list == null || list.size() <= 0) {
+            return -1;
+        } else {
+            int position = 0;
+            for (Music m : list) {
+                if (m.getName() != null && m.getName().equals(music.getName())) {
+                    return position;
+                }
+                position++;
+            }
+        }
+        return -1;
+    }
+
+    public static int isExist(List<LocalMusic> list, LocalMusic music) {
+        if (list == null || list.size() <= 0) {
+            return -1;
+        } else {
+            int position = 0;
+            for (LocalMusic m : list) {
+                if (m.getName() != null && m.getName().equals(music.getName())) {
+                    return position;
+                }
+                position++;
+            }
+        }
+        return -1;
+    }
 }
 

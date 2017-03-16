@@ -1,5 +1,9 @@
 package yb.com.magicplayer.utils;
 
+import yb.com.magicplayer.entity.LocalMusic;
+import yb.com.magicplayer.entity.Music;
+import yb.com.magicplayer.entity.OnlineMusic;
+
 /**
  * 安全转换
  * Created by yb on 2017/2/10.
@@ -75,6 +79,34 @@ public class SafeConvertUtil {
         } catch (Exception e) {
             return defaultValue;
         }
+    }
+
+    public static Music localMusic2Music(LocalMusic localMusic) {
+        if (localMusic == null) {
+            return null;
+        }
+        return new Music(Music.TYPE_LOCAL_MUSIC, localMusic, null);
+    }
+
+    public static LocalMusic music2LocalMusic(Music music) {
+        if (music == null) {
+            return null;
+        }
+        return music.getLocalMusic();
+    }
+
+    public static Music onlineMusic2Music(OnlineMusic onlineMusic) {
+        if (onlineMusic == null) {
+            return null;
+        }
+        return new Music(Music.TYPE_ONLINE_MUSIC, null, onlineMusic);
+    }
+
+    public static OnlineMusic music2OnlineMusic(Music music) {
+        if (music == null) {
+            return null;
+        }
+        return music.getOnlineMusic();
     }
 
 }

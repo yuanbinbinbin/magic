@@ -2,14 +2,22 @@ package yb.com.magicplayer.activity;
 
 import android.animation.Animator;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.alibaba.fastjson.JSON;
+
+import java.util.List;
+
 import yb.com.magicplayer.R;
+import yb.com.magicplayer.entity.LocalMusic;
+import yb.com.magicplayer.entity.Music;
 import yb.com.magicplayer.utils.ActivityUtil;
 import yb.com.magicplayer.utils.ConfigData;
 import yb.com.magicplayer.utils.DateUtil;
+import yb.com.magicplayer.utils.FastJsonUtil;
 import yb.com.magicplayer.utils.GlobalVariables;
 import yb.com.magicplayer.utils.MediaUtils;
 import yb.com.magicplayer.utils.PreferencesUtils;
@@ -24,9 +32,9 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
     }
 
@@ -50,11 +58,6 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
             @Override
             public void run() {
                 prepareThings();
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 isPrepared = true;
             }
         }).start();
@@ -78,8 +81,15 @@ public class WelcomeActivity extends BaseActivity implements Animator.AnimatorLi
     }
 
     private void prepareThings() {
-        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(this, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_ALL);
-        GlobalVariables.listLocalMusic = MediaUtils.getLocalMusics(this);
+        MediaUtils.initMusic(WelcomeActivity.this);//更新音乐库
+        Log.e("test", "musicCount: " + GlobalVariables.listLocalMusic.size());
+        Log.e("test", "listPlayCount: " + GlobalVariables.listPlayList.size());
+        Log.e("test", "playQueneCount: " + GlobalVariables.playQuene.size());
+        Log.e("test", "recentCount: " + GlobalVariables.listRecentPlayMusic.size());
+        Log.e("test", "likedCount: " + GlobalVariables.listLikedMusic.size());
+        Log.e("test", "albumCount: " + GlobalVariables.listAlbum.size());
+        Log.e("test", "artistCount: " + GlobalVariables.listArtist.size());
+        Log.e("test", "folderCount: " + GlobalVariables.listFolder.size());
         chackFile();
     }
 

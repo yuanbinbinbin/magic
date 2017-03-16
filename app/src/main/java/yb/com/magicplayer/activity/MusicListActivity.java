@@ -99,7 +99,7 @@ public class MusicListActivity extends BaseActivity implements ResultListView.On
         mServiceIntent.putExtra("playing", "playingbyid");
         mServiceIntent.putExtra("id", ((LocalMusic) localMusicInfoAdpater.getItem(position - 1)).getId());
         startService(mServiceIntent);
-        GlobalVariables.playingState = ConfigData.PLAYING_MUSIC_ON_LOCAL;
+
     }
 
     @Override
