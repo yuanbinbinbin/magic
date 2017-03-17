@@ -5,7 +5,7 @@
 
     <include layout="@layout/include_common_title_bar" />
 
-    <yb.com.magicplayer.weights.ResultListView
+    <com.yb.magicplayer.weights.ResultListView
         android:id="@+id/id_music_list_listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

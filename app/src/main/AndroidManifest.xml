@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="yb.com.magicplayer">
+    package="com.yb.magicplayer">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -9,24 +9,26 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
-        android:name=".application.MagicPlayerApplication"
+        android:name="com.yb.magicplayer.application.MagicPlayerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity" />
-        <activity android:name=".activity.MusicListActivity" />
+        <activity android:name="com.yb.magicplayer.activity.MainActivity" />
+        <activity android:name="com.yb.magicplayer.activity.MusicListActivity" />
 
-        <service android:name=".service.MusicPlayService" />
+        <service android:name="com.yb.magicplayer.service.MusicPlayService" />
 
-        <activity android:name=".activity.WelcomeActivity">
+        <activity android:name="com.yb.magicplayer.activity.WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data android:name="com.yb.magicplayer.utils.GlideConfigModule" android:value="GlideModule"/>
     </application>
 
 </manifest>

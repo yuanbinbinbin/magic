@@ -1,4 +1,4 @@
-package yb.com.magicplayer;
+package com.yb.magicplayer;
 
 import org.junit.Test;
 

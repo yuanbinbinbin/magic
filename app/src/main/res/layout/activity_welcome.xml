@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@color/color_000000">
 
-    <yb.com.magicplayer.view.shimmer.ShimmerTextView
+    <com.yb.magicplayer.view.shimmer.ShimmerTextView
         android:id="@+id/id_welcome_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

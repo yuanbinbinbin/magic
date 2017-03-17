@@ -47,7 +47,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_2"
@@ -55,7 +55,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_3"
@@ -63,7 +63,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_4"
@@ -71,7 +71,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_5"
@@ -79,7 +79,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                     </LinearLayout>
 
@@ -95,7 +95,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_7"
@@ -103,7 +103,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_8"
@@ -111,7 +111,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                         <ImageView
                             android:id="@+id/home_header_img_9"
@@ -126,13 +126,13 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            android:src="@mipmap/ic_launcher"/>
+                            android:src="@mipmap/ic_launcher" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
-                <yb.com.magicplayer.weights.LinearGradient
+                <com.yb.magicplayer.weights.LinearGradient
                     android:id="@+id/custom_linear_gradient"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
@@ -150,95 +150,12 @@
         </android.support.design.widget.CollapsingToolbarLayout>
 
     </android.support.design.widget.AppBarLayout>
+
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:background="@color/color_ffffff">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="1234"
-                android:gravity="center"/>
-        </LinearLayout>
+
+        <include layout="@layout/include_main_body" />
     </android.support.v4.widget.NestedScrollView>
 </android.support.design.widget.CoordinatorLayout>
