@@ -19,7 +19,7 @@ public class ImageUtil {
     }
 
     public static void loadImage(Context context, String path, ImageView iv, int defaultImg, int errorImg) {
-        Glide.with(context).load(path).placeholder(defaultImg).error(errorImg).centerCrop().into(iv);
+        Glide.with(context).load(path).placeholder(defaultImg).error(errorImg).centerCrop().dontAnimate().dontTransform().into(iv);
     }
 
     public static void loadGif(Context context, String path, ImageView iv) {

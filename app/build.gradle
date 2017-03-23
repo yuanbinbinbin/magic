@@ -14,7 +14,8 @@ android {
     buildTypes {
         release {
             minifyEnabled false//是否开启混淆
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'//混淆文件的位置
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            //混淆文件的位置
         }
     }
 }
@@ -29,4 +30,6 @@ dependencies {
     compile 'com.android.support:design:25.1.0'
     compile 'com.alibaba:fastjson:1.1.56.android'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
-    compile 'com.github.bumptech.glide:okhttp3-integration:1.4.0@aar'}
+    compile 'com.github.bumptech.glide:okhttp3-integration:1.4.0@aar'
+    compile 'org.greenrobot:eventbus:3.0.0'
+}

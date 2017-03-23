@@ -20,15 +20,22 @@ import java.util.Random;
 
 import com.yb.magicplayer.R;
 import com.yb.magicplayer.activity.MainActivity;
-import com.yb.magicplayer.entity.LocalMusic;
+import com.yb.magicplayer.entity.Music;
+import com.yb.magicplayer.events.CloseEvent;
+import com.yb.magicplayer.events.PlayingMusicChangeEvent;
+import com.yb.magicplayer.events.PlayingStatusChangeEvent;
+import com.yb.magicplayer.events.RefreshPlayProgressEvent;
+import com.yb.magicplayer.events.RefreshRecentPlayListEvent;
 import com.yb.magicplayer.utils.ConfigData;
 import com.yb.magicplayer.utils.GlobalVariables;
+import com.yb.magicplayer.utils.LogUtil;
 import com.yb.magicplayer.utils.MediaUtils;
-import com.yb.magicplayer.utils.PreferencesUtils;
 
-public class MusicPlayService extends Service implements OnCompletionListener, Visualizer.OnDataCaptureListener, MediaPlayer.OnPreparedListener {
+import org.greenrobot.eventbus.EventBus;
 
-    private LocalMusic playingmusic;
+public class MusicPlayService extends Service implements OnCompletionListener, Visualizer.OnDataCaptureListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnInfoListener {
+
+    private Music playingmusic;
 
     private static int SEND_NOTIFICATION_PLAY = 0;
     private static int SEND_NOTIFICATION_PAUSE = 1;
@@ -41,14 +48,12 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     private int playingId;
 
     private Intent mIntent;
-    private Intent broadcastIntent;
     private Intent refreshTimeIntent;
-    private int playingposition;
-    private MyBinder myBinder = new MyBinder();
     private ImageView mIvMusicImg;
     private MediaPlayer mp;  //用于音乐波荡
     private int positon;   //音乐播放的位置
     private Visualizer mVisualizer;//用于获取音乐频率
+    private boolean isPrepared = false;
 
     @Override
     public void onCreate() {
@@ -60,11 +65,26 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     }
 
     private void initData() {
+        positon = GlobalVariables.playingPosition;
+        playingmusic = GlobalVariables.playQuene.get(positon);
+        playingId = playingmusic.getId();
+    }
+
+    private void initMediaPlayer() {
+        mp = new MediaPlayer();
+        mp.setOnCompletionListener(this);
+        mp.setOnPreparedListener(this);
+        mp.setOnBufferingUpdateListener(this);
+        mp.setOnInfoListener(this);
+        mVisualizer = new Visualizer(mp.getAudioSessionId());
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        mVisualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, true, true);
+        mVisualizer.setEnabled(false);
+        isPrepared = false;
     }
 
     private void initIntent() {
         mIntent = new Intent(this, MusicPlayService.class);
-        broadcastIntent = new Intent("RefreshInfor");
         refreshTimeIntent = new Intent("RefreshTime");
     }
 
@@ -95,7 +115,8 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
             if ("close".equals(playing)) {
                 mNotificationManager.cancel(666);
                 stopSelf();
-            } else if ("start".equals(playing)) {
+                EventBus.getDefault().post(new CloseEvent());
+            } else if ("start".equals(playing)) {//启动app
                 reStartActivity();
             } else {
                 refreshPlayer(intent);
@@ -131,15 +152,16 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     }
 
     private void sendNotification(int mode) {
-        if (playingId == playingmusic.getId()) {
+        if (playingId == playingmusic.getId() && isPrepared) {
             if (mode == SEND_NOTIFICATION_PLAY) {
                 mRemoteViews.setImageViewResource(R.id.id_notification_pause,
                         R.drawable.activity_notification_pause);
                 mPendingIntent = PendingIntent.getService(this, 2,
                         mIntent.putExtra("playing", "pause"),
                         PendingIntent.FLAG_UPDATE_CURRENT);
+                GlobalVariables.playStatus = GlobalVariables.PLAY_STATUS_PLAYING;
                 mBuilder.setTicker(playingmusic.getName());
-
+                EventBus.getDefault().post(new PlayingStatusChangeEvent(GlobalVariables.PLAY_STATUS_PLAYING));
             } else if (mode == SEND_NOTIFICATION_PAUSE) {
                 mRemoteViews.setImageViewResource(R.id.id_notification_pause,
                         R.drawable.activity_notification_play);
@@ -147,9 +169,10 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
                         mIntent.putExtra("playing", "play"),
                         PendingIntent.FLAG_UPDATE_CURRENT);
                 mBuilder.setTicker("");
+                GlobalVariables.playStatus = GlobalVariables.PLAY_STATUS_PAUSE;
+                EventBus.getDefault().post(new PlayingStatusChangeEvent(GlobalVariables.PLAY_STATUS_PAUSE));
             }
-            mRemoteViews.setOnClickPendingIntent(R.id.id_notification_pause,
-                    mPendingIntent);
+            mRemoteViews.setOnClickPendingIntent(R.id.id_notification_pause, mPendingIntent);
         } else {
             mRemoteViews.setTextViewText(R.id.id_notification_name,
                     playingmusic.getName());
@@ -181,19 +204,18 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
             mRemoteViews.setOnClickPendingIntent(R.id.id_notification_next,
                     mPendingIntent);
             mBuilder.setTicker(playingmusic.getName());
-            playingId = playingmusic.getId();
-
+            GlobalVariables.playStatus = GlobalVariables.PLAY_STATUS_PLAYING;
+            EventBus.getDefault().post(new PlayingMusicChangeEvent(playingmusic));
+            EventBus.getDefault().post(new PlayingStatusChangeEvent(GlobalVariables.PLAY_STATUS_PLAYING));
         }
         mBuilder.setContent(mRemoteViews);
         // mNotificationManager.notify(666, mBuilder.build());
         startForeground(666, mBuilder.build());
-        sendBroadcast(broadcastIntent);
-        return;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return new MyBinder();
+        return new MusicPlayBinder();
     }
 
     @Override
@@ -204,36 +226,8 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     @Override
     public void onDestroy() {
         releasePlayer();
-        PreferencesUtils.savePrefInt(this, "playinglocalmusicid", playingmusic.getId());
         super.onDestroy();
         System.exit(0);
-    }
-
-    private void getMusicInfoFromSharedPreference() {
-
-        playingId = PreferencesUtils.loadPrefInt(this, "playinglocalmusicid", -1);
-        playingposition = MediaUtils.getPositionInLocalMusicList(
-                GlobalVariables.listLocalMusic, playingId);
-
-        if (playingposition != -1) {
-            playingmusic = GlobalVariables.listLocalMusic.get(playingposition);
-        } else {
-            if (GlobalVariables.listLocalMusic == null || GlobalVariables.listLocalMusic.size() <= 0)
-                playingmusic = new LocalMusic();
-            else
-                playingmusic = GlobalVariables.listLocalMusic.get(0);
-        }
-    }
-
-
-    private void initMediaPlayer() {
-        mp = new MediaPlayer();
-        mp.setOnCompletionListener(this);
-        mp.setOnPreparedListener(this);
-        mVisualizer = new Visualizer(mp.getAudioSessionId());
-        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
-        mVisualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, true, true);
-        mVisualizer.setEnabled(false);
     }
 
     public void refreshPlayer(Intent intent) {
@@ -245,44 +239,48 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
                     mp.pause();
                     sendNotification(SEND_NOTIFICATION_PAUSE);
                 } else {
-                    positon = MediaUtils.getPositionInLocalMusicList(GlobalVariables.listLocalMusic, id);
-                    playingmusic = GlobalVariables.listLocalMusic.get(positon);
-                    playMusic();
+                    positon = MediaUtils.getPositionInMusicList(GlobalVariables.playQuene, id);
+                    playingmusic = GlobalVariables.playQuene.get(positon);
                     sendNotification(SEND_NOTIFICATION_PLAY);
+                    playMusic();
                 }
             } else {
-                if (playingmusic != null && playingmusic.getId() == id) {
+                if (playingmusic != null && playingmusic.getId() == id && isPrepared) {
                     mp.start();
                     sendNotification(SEND_NOTIFICATION_PLAY);
                 } else {
-                    positon = MediaUtils.getPositionInLocalMusicList(GlobalVariables.listLocalMusic, id);
-                    playingmusic = GlobalVariables.listLocalMusic.get(positon);
-                    playMusic();
+                    positon = MediaUtils.getPositionInMusicList(GlobalVariables.playQuene, id);
+                    playingmusic = GlobalVariables.playQuene.get(positon);
                     sendNotification(SEND_NOTIFICATION_PLAY);
+                    playMusic();
                 }
             }
         } else if ("next".equals(playing)) {
             positon++;
-            positon = positon % GlobalVariables.listLocalMusic.size();
-            playingmusic = GlobalVariables.listLocalMusic.get(positon);
-            playMusic();
+            positon = positon % GlobalVariables.playQuene.size();
+            playingmusic = GlobalVariables.playQuene.get(positon);
             sendNotification(SEND_NOTIFICATION_PLAY);
+            playMusic();
             return;
         } else if ("pause".equals(playing)) {
             mp.pause();
             sendNotification(SEND_NOTIFICATION_PAUSE);
             return;
         } else if ("play".equals(playing)) {
-            mp.start();
             sendNotification(SEND_NOTIFICATION_PLAY);
+            if(isPrepared){
+                mp.start();
+            }else{
+                playMusic();
+            }
             return;
         } else if ("last".equals(playing)) {
             positon--;
             if (positon == -1)
-                positon = GlobalVariables.listLocalMusic.size() - 1;
-            playingmusic = GlobalVariables.listLocalMusic.get(positon);
-            playMusic();
+                positon = GlobalVariables.playQuene.size() - 1;
+            playingmusic = GlobalVariables.playQuene.get(positon);
             sendNotification(SEND_NOTIFICATION_PLAY);
+            playMusic();
             return;
         } else if ("changetime".equals(playing)) {
             int time = intent.getIntExtra("time", -1);
@@ -295,6 +293,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     private void playMusic() {
         try {
+            isPrepared = false;
             mp.reset();
             mp.setDataSource(playingmusic.getAddr());
             mp.prepareAsync();
@@ -314,14 +313,16 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
                 break;
             case ConfigData.PLAYING_MUSIC_MODE_ALL:// 顺序循环
                 positon++;
-                positon = positon % GlobalVariables.listLocalMusic.size();
-                playingmusic = GlobalVariables.listLocalMusic.get(positon);
+                positon = positon % GlobalVariables.playQuene.size();
+                playingmusic = GlobalVariables.playQuene.get(positon);
+                sendNotification(SEND_NOTIFICATION_PLAY);
                 playMusic();
                 break;
             case ConfigData.PLAYING_MUSIC_MODE_RANDOM://随机播放
                 Random random = new Random();
-                positon = random.nextInt(GlobalVariables.listLocalMusic.size());
-                playingmusic = GlobalVariables.listLocalMusic.get(positon);
+                positon = random.nextInt(GlobalVariables.playQuene.size());
+                playingmusic = GlobalVariables.playQuene.get(positon);
+                sendNotification(SEND_NOTIFICATION_PLAY);
                 playMusic();
                 break;
         }
@@ -330,25 +331,43 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        playingId = playingmusic.getId();
+        isPrepared = true;
         this.mp.start();
         mVisualizer.setEnabled(true);
         sendNotification(SEND_NOTIFICATION_PLAY);
+        playingId = playingmusic.getId();
+        MediaUtils.savePlayingPosition(this, positon);
+        MediaUtils.refreshRecentPlayList(playingmusic);
+        EventBus.getDefault().post(new RefreshRecentPlayListEvent());
     }
 
     public void releasePlayer() {
         mp.release();
         mVisualizer.setEnabled(false);
+        isPrepared = false;
         mp = null;
         mVisualizer = null;
     }
 
-    public boolean isPlaying() {
+    public boolean musicIsPlaying() {
         return mp.isPlaying();
     }
 
-    public int getPlayingPosition() {
-        return mp.getCurrentPosition() / 1000;
+    public int getPlayingMusicPosition() {
+        int currentPosition = 0;
+        if (isPrepared) {
+            currentPosition = mp.getCurrentPosition();
+        }
+        LogUtil.i("getPlayingMusicPosition", "position : " + currentPosition);
+        return currentPosition;
+    }
+
+    public int getPlayingMusicTotalTime() {
+        int totalTime = playingmusic.getAllTime();
+        if (isPrepared) {
+            totalTime = mp.getDuration();
+        }
+        return totalTime < 0 ? playingmusic.getAllTime() : totalTime;
     }
 
     @Override
@@ -370,17 +389,44 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         }
     }
 
-    public class MyBinder extends Binder {
-        public LocalMusic getPlayingLocalMusic() {
+    @Override
+    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+        LogUtil.i("onBufferingUpdate", "percent: " + percent);
+        EventBus.getDefault().post(new RefreshPlayProgressEvent(getPlayingMusicPosition(), percent, getPlayingMusicTotalTime()));
+    }
+
+    @Override
+    public boolean onInfo(MediaPlayer mp, int what, int extra) {
+        switch (what) {
+            case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+                LogUtil.i("onInfo", "MEDIA_INFO_BUFFERING_START");
+                break;
+            case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+                LogUtil.i("onInfo", "MEDIA_INFO_BUFFERING_END");
+                break;
+        }
+        return false;
+    }
+
+    public class MusicPlayBinder extends Binder {
+        public Music getPlayingMusic() {
             return playingmusic;
         }
 
-        public boolean isPlayingLocalMusic() {
-            return isPlaying();
+        public int getPlayStatus() {
+            return GlobalVariables.playStatus;
         }
 
-        public int getPlayingPosition() {
-            return getPlayingPosition();
+        public int getProgress() {
+            return getPlayingMusicPosition();
+        }
+
+        public int getSecondProgress() {
+            return 0;
+        }
+
+        public int getMaxProgress() {
+            return getPlayingMusicTotalTime();
         }
     }
 

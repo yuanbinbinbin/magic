@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.yb.magicplayer.R;
+import com.yb.magicplayer.activity.base.BaseActivity;
 import com.yb.magicplayer.utils.ActivityUtil;
 import com.yb.magicplayer.utils.DateUtil;
 import com.yb.magicplayer.utils.GlobalVariables;

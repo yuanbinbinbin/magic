@@ -19,6 +19,9 @@ import com.yb.magicplayer.entity.PlayList;
  * @author Administrator
  */
 public class GlobalVariables {
+    public static final int PLAY_STATUS_PLAYING = 1;//播放状态
+    public static final int PLAY_STATUS_PAUSE = 2;//暂停状态
+    public static final int PLAY_STATUS_BUFFER = 3;//缓冲状态
 
     public static List<LocalMusic> listLocalMusic;//本地音乐列表
     public static List<Music> listRecentPlayMusic;//最近播放音乐列表
@@ -29,7 +32,7 @@ public class GlobalVariables {
     public static List<PlayList> listPlayList;//播放列表集合
     public static List<Music> playQuene = new ArrayList<Music>();//播放队列
     public static int playingPosition = 0;//当前播放音乐的位置
-    public static boolean isPlaying = false;//当前是否在播放
+    public static int playStatus = PLAY_STATUS_PAUSE;//当前是否在播放
     public static int playingMode = ConfigData.PLAYING_MUSIC_MODE_ALL;//循环方式
     public static int themeColor = Color.parseColor("#B24242");//主题颜色
     public static final String KEY_WELCOME_CONTENT = "key_welcome_content";

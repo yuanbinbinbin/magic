@@ -231,4 +231,9 @@
         android:text="MAGIC PLAYER"
         android:textAlignment="gravity"
         android:textColor="#888" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:background="@color/color_000000" />
 </LinearLayout>

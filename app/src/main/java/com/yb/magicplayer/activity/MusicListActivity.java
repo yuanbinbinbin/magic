@@ -15,11 +15,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yb.magicplayer.R;
+import com.yb.magicplayer.activity.base.BaseActivity;
 import com.yb.magicplayer.adapter.LocalMusicInfoAdpater;
 import com.yb.magicplayer.entity.LocalMusic;
 import com.yb.magicplayer.service.MusicPlayService;
 import com.yb.magicplayer.utils.GlobalVariables;
 import com.yb.magicplayer.utils.MediaUtils;
+import com.yb.magicplayer.utils.SafeConvertUtil;
 import com.yb.magicplayer.weights.ResultListView;
 
 public class MusicListActivity extends BaseActivity implements ResultListView.OnRefreshListener, AdapterView.OnItemClickListener {
@@ -29,13 +31,13 @@ public class MusicListActivity extends BaseActivity implements ResultListView.On
     private MsgReceiver msgReceiver;
     private LocalMusicInfoAdpater localMusicInfoAdpater;
     private Intent mServiceIntent;
-    private MusicPlayService.MyBinder mServiceBinder;
+    private MusicPlayService.MusicPlayBinder mServiceBinder;
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mServiceBinder = (MusicPlayService.MyBinder) service;
+            mServiceBinder = (MusicPlayService.MusicPlayBinder) service;
             if (localMusicInfoAdpater != null) {
-                localMusicInfoAdpater.playingMusicChanged(mServiceBinder.getPlayingLocalMusic());
+                localMusicInfoAdpater.playingMusicChanged(mServiceBinder.getPlayingMusic().getLocalMusic());
             }
         }
 
@@ -95,8 +97,13 @@ public class MusicListActivity extends BaseActivity implements ResultListView.On
         if (position == 0 || localMusicInfoAdpater.getCount() < position) {
             return;
         }
+        LocalMusic music = (LocalMusic) localMusicInfoAdpater.getItem(position - 1);
+        if (music == null) {
+            return;
+        }
+        MediaUtils.addMusic2PlayQuene(SafeConvertUtil.localMusic2Music(music));
         mServiceIntent.putExtra("playing", "playingbyid");
-        mServiceIntent.putExtra("id", ((LocalMusic) localMusicInfoAdpater.getItem(position - 1)).getId());
+        mServiceIntent.putExtra("id", music.getId());
         startService(mServiceIntent);
 
     }
@@ -143,7 +150,7 @@ public class MusicListActivity extends BaseActivity implements ResultListView.On
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("RefreshInfor".equals(intent.getAction())) {
-                localMusicInfoAdpater.playingMusicChanged(mServiceBinder.getPlayingLocalMusic());
+                localMusicInfoAdpater.playingMusicChanged(mServiceBinder.getPlayingMusic().getLocalMusic());
             } else if ("finish".equals(intent.getAction())) {
                 MusicListActivity.this.finish();
             }

@@ -158,4 +158,50 @@
 
         <include layout="@layout/include_main_body" />
     </android.support.v4.widget.NestedScrollView>
+
+    <RelativeLayout
+        android:id="@+id/id_main_bottom_playing_container"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:layout_gravity="bottom"
+        android:background="@color/color_000000">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:orientation="horizontal">
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/id_main_bottom_musics"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+            <ImageView
+                android:id="@+id/id_main_playing_controller"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center"
+                android:layout_marginRight="20dp"
+                android:padding="10dp"
+                android:src="@drawable/ic_main_play_arrow_white" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/id_main_playing_seek_bar"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:max="100"
+            android:paddingEnd="0dp"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:paddingStart="0dp"
+            android:progress="50"
+            android:progressDrawable="@drawable/style_seek_bar_main_play"
+            android:secondaryProgress="100"
+            android:thumb="@null"
+            android:thumbOffset="0dp" />
+    </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>
