@@ -58,7 +58,8 @@
             android:layout_below="@+id/id_main_recent_label"
             android:paddingBottom="5dp"
             android:paddingLeft="5dp"
-            android:paddingRight="5dp" />
+            android:paddingRight="5dp"
+            android:nestedScrollingEnabled="false"/>
     </RelativeLayout>
 
     <View
@@ -120,7 +121,8 @@
             android:layout_below="@+id/id_main_play_list_label"
             android:paddingBottom="5dp"
             android:paddingLeft="5dp"
-            android:paddingRight="5dp" />
+            android:paddingRight="5dp"
+            android:nestedScrollingEnabled="false"/>
     </RelativeLayout>
 
     <View
