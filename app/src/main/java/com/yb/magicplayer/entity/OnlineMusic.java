@@ -106,4 +106,19 @@ public class OnlineMusic {
     public void setAddr(String addr) {
         this.addr = addr;
     }
+
+    @Override
+    public String toString() {
+        return "OnlineMusic{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", author='" + author + '\'' +
+                ", allTime=" + allTime +
+                ", size=" + size +
+                ", addr='" + addr + '\'' +
+                ", album_id=" + album_id +
+                ", album='" + album + '\'' +
+                ", image='" + image + '\'' +
+                '}';
+    }
 }

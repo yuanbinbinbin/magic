@@ -31,6 +31,7 @@ import com.yb.magicplayer.events.PlayingMusicChangeEvent;
 import com.yb.magicplayer.events.PlayingStatusChangeEvent;
 import com.yb.magicplayer.events.RefreshPlayProgressEvent;
 import com.yb.magicplayer.events.RefreshRecentPlayListEvent;
+import com.yb.magicplayer.listener.OnItemClickListener;
 import com.yb.magicplayer.service.MusicPlayService;
 import com.yb.magicplayer.utils.ActivityUtil;
 import com.yb.magicplayer.utils.GlobalVariables;
@@ -181,6 +182,15 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
 
     private void initBottomMusicInfo() {
         mBottomMusicsAdapter = new MainBottomPlayerAdpater(GlobalVariables.playQuene, getContext());
+        mBottomMusicsAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, Object object) {
+                if (object != null && object instanceof Music) {
+                    //LogUtil.i(TAG, "onItemClick position: " + position + "info: " + object);
+                    ActivityUtil.startActivity(getContext(), PlayDetailActivity.class);
+                }
+            }
+        });
         mViewPagerBottomMusics.setAdapter(mBottomMusicsAdapter);
     }
 
@@ -263,7 +273,15 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
             mRvRecently.setVisibility(View.VISIBLE);
             if (mainRecentPlayAdapter == null) {
                 mainRecentPlayAdapter = new MainRecentPlayAdapter(getContext(), null);
-                mRvRecently.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+                mainRecentPlayAdapter.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(int position, Object object) {
+                        if (object != null && object instanceof Music) {
+                            playMusicByMusicId(((Music) object).getId());
+                        }
+                    }
+                });
+                mRvRecently.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 mRvRecently.setAdapter(mainRecentPlayAdapter);
             }
             mainRecentPlayAdapter.setData(GlobalVariables.listRecentPlayMusic);
@@ -282,7 +300,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
             mRvPlayList.setVisibility(View.VISIBLE);
             if (mainPlayListAdapter == null) {
                 mainPlayListAdapter = new MainPlayListAdapter(getContext(), null);
-                mRvPlayList.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+                mRvPlayList.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
                 mRvPlayList.setAdapter(mainPlayListAdapter);
             }
             mainPlayListAdapter.setData(GlobalVariables.listPlayList);
@@ -312,10 +330,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
             public void onPageSelected(int position) {
                 if (playingPosition != position && isSelfChanged && GlobalVariables.playQuene != null && GlobalVariables.playQuene.size() > position) {
                     playingPosition = position;
-                    Intent intent = new Intent(getContext(), MusicPlayService.class);
-                    intent.putExtra("playing", "playingbyid");
-                    intent.putExtra("id", GlobalVariables.playQuene.get(position).getId());
-                    startService(intent);
+                    playMusicByMusicId(GlobalVariables.playQuene.get(position).getId());
                 }
                 isSelfChanged = false;
             }
@@ -323,12 +338,19 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
             @Override
             public void onPageScrollStateChanged(int state) {
 //                0：什么都没做 1：开始滑动  2：滑动结束
-                if(state == 1)
+                if (state == 1)
                     isSelfChanged = true;
-                else if(state == 0)
+                else if (state == 0)
                     isSelfChanged = false;
             }
         });
+    }
+
+    private void playMusicByMusicId(int id) {
+        Intent intent = new Intent(getContext(), MusicPlayService.class);
+        intent.putExtra("playing", "playingbyid");
+        intent.putExtra("id", id);
+        startService(intent);
     }
 
     @Override
@@ -430,21 +452,22 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayingMusicChanged(PlayingMusicChangeEvent event) {
-        LogUtil.i(TAG,"onPlayingMusicChanged");
+        LogUtil.i(TAG, "onPlayingMusicChanged");
         refreshMusicInfo(event.getPlayingMusic());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayingStatusChanged(PlayingStatusChangeEvent event) {
-        LogUtil.i(TAG,"onPlayingStatusChanged");
+        LogUtil.i(TAG, "onPlayingStatusChanged");
         refreshPlayStatus(event.getStatus());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshPlayProgress(RefreshPlayProgressEvent event) {
-        LogUtil.i(TAG,"onRefreshPlayProgress");
+        LogUtil.i(TAG, "onRefreshPlayProgress");
         refreshSeekBar(event.getProgress(), event.getSecondProgress(), event.getMaxProgress());
     }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshRecentPlayList(RefreshRecentPlayListEvent event) {
         LogUtil.i(TAG, "onRefreshRecentPlayList");

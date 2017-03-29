@@ -224,4 +224,13 @@ public class Music {
     public void setOnlineMusic(OnlineMusic onlineMusic) {
         this.onlineMusic = onlineMusic;
     }
+
+    @Override
+    public String toString() {
+        return "Music{" +
+                "type=" + type +
+                ", localMusic=" + localMusic +
+                ", onlineMusic=" + onlineMusic +
+                '}';
+    }
 }

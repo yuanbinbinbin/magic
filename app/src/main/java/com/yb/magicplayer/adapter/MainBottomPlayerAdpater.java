@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.yb.magicplayer.R;
 import com.yb.magicplayer.entity.Music;
+import com.yb.magicplayer.listener.OnItemClickListener;
 import com.yb.magicplayer.utils.GlobalVariables;
 import com.yb.magicplayer.utils.ImageUtil;
 import com.yb.magicplayer.utils.SafeConvertUtil;
@@ -20,11 +21,20 @@ import com.yb.magicplayer.weights.ShapeImageView;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainBottomPlayerAdpater extends PagerAdapter {
+public class MainBottomPlayerAdpater extends PagerAdapter implements OnClickListener {
 
     private LayoutInflater mInflater;
     private Context mContext;
     private LinkedList<View> mViewCache = new LinkedList<View>();
+    private OnItemClickListener onItemClickListener;
+
+    public OnItemClickListener getOnItemClickListener() {
+        return onItemClickListener;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
+    }
 
     public MainBottomPlayerAdpater(List<Music> musics, Context mContext) {
         super();
@@ -52,6 +62,7 @@ public class MainBottomPlayerAdpater extends PagerAdapter {
                     .findViewById(R.id.id_main_playing_title);
             mViewHolder.mTvPlayingMusicLrc = (TextView) convertView
                     .findViewById(R.id.id_main_playing_lrc);
+            mViewHolder.mViewPlayingMusicContainer = convertView.findViewById(R.id.id_main_playing_container);
             convertView.setTag(mViewHolder);
         } else {
             convertView = mViewCache.removeFirst();
@@ -59,7 +70,6 @@ public class MainBottomPlayerAdpater extends PagerAdapter {
         }
         List<Music> musics = GlobalVariables.playQuene;
         if (musics != null && musics.size() > position) {
-
             Music music = musics.get(position);
             if (music == null) {
                 return convertView;
@@ -68,13 +78,10 @@ public class MainBottomPlayerAdpater extends PagerAdapter {
             mViewHolder.mTvPlayingMusicLrc.setVisibility(View.GONE);
             if (musics.get(position).getImage() != null)
                 ImageUtil.loadImage(mContext, music.getImage(), mViewHolder.mSIvPlayingMusicAvatar, R.drawable.ic_default, R.drawable.ic_default);
-//            convertView.setOnClickListener(new OnClickListener() {
-//
-//                @Override
-//                public void onClick(View v) {
-//                    //mContext.startActivity(new Intent(mContext, MainPlayingActivity.class));
-//                }
-//            });
+            mViewHolder.mViewPlayingMusicContainer.setTag(position);
+            mViewHolder.mViewPlayingMusicContainer.setOnClickListener(this);
+        } else {
+            mViewHolder.mViewPlayingMusicContainer.setOnClickListener(null);
         }
         container.addView(convertView);
         return convertView;
@@ -85,7 +92,17 @@ public class MainBottomPlayerAdpater extends PagerAdapter {
         return GlobalVariables.playQuene == null ? 0 : GlobalVariables.playQuene.size();
     }
 
+    @Override
+    public void onClick(View v) {
+        int position = SafeConvertUtil.convertToInt(v.getTag(), -1);
+        if (position < 0 || position >= getCount() || onItemClickListener == null) {
+            return;
+        }
+        onItemClickListener.onItemClick(position, GlobalVariables.playQuene.get(position));
+    }
+
     class ViewHolder {
+        private View mViewPlayingMusicContainer;
         private ShapeImageView mSIvPlayingMusicAvatar;
         private TextView mTvPlayingMusicTitle;
         private TextView mTvPlayingMusicLrc;

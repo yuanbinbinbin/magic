@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.audiofx.Equalizer;
 import android.media.audiofx.Visualizer;
 import android.os.Binder;
 import android.os.IBinder;
@@ -30,6 +31,8 @@ import com.yb.magicplayer.utils.ConfigData;
 import com.yb.magicplayer.utils.GlobalVariables;
 import com.yb.magicplayer.utils.LogUtil;
 import com.yb.magicplayer.utils.MediaUtils;
+import com.yb.magicplayer.view.visualizer.bean.FFTBean;
+import com.yb.magicplayer.view.visualizer.bean.WaveBean;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -53,6 +56,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     private MediaPlayer mp;  //用于音乐波荡
     private int positon;   //音乐播放的位置
     private Visualizer mVisualizer;//用于获取音乐频率
+    private Equalizer mEqualizer;//用于调整音频输出的
     private boolean isPrepared = false;
 
     @Override
@@ -80,6 +84,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mVisualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, true, true);
         mVisualizer.setEnabled(false);
+        mEqualizer = new Equalizer(0, mp.getAudioSessionId());
         isPrepared = false;
     }
 
@@ -268,9 +273,9 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
             return;
         } else if ("play".equals(playing)) {
             sendNotification(SEND_NOTIFICATION_PLAY);
-            if(isPrepared){
+            if (isPrepared) {
                 mp.start();
-            }else{
+            } else {
                 playMusic();
             }
             return;
@@ -306,6 +311,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     public void onCompletion(MediaPlayer mp) {
         if (mVisualizer != null) {
             mVisualizer.setEnabled(false);
+            mEqualizer.setEnabled(false);
         }
         switch (GlobalVariables.playingMode) {
             case ConfigData.PLAYING_MUSIC_MODE_ONLY:// 单曲循环
@@ -334,6 +340,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         isPrepared = true;
         this.mp.start();
         mVisualizer.setEnabled(true);
+        mEqualizer.setEnabled(true);
         sendNotification(SEND_NOTIFICATION_PLAY);
         playingId = playingmusic.getId();
         MediaUtils.savePlayingPosition(this, positon);
@@ -344,9 +351,13 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     public void releasePlayer() {
         mp.release();
         mVisualizer.setEnabled(false);
+        mVisualizer.release();
+        mEqualizer.setEnabled(false);
+        mEqualizer.release();
         isPrepared = false;
         mp = null;
         mVisualizer = null;
+        mEqualizer = null;
     }
 
     public boolean musicIsPlaying() {
@@ -372,21 +383,12 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     @Override
     public void onWaveFormDataCapture(Visualizer visualizer, byte[] waveform, int samplingRate) {
-
+        EventBus.getDefault().post(new WaveBean(waveform));
     }
 
     @Override
     public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
-        if (fft != null && fft.length > 0) {
-            byte[] model = new byte[fft.length / 2 + 1];
-            model[0] = (byte) Math.abs(fft[1]);
-            int j = 1;
-            for (int i = 2; i < fft.length - 1; ) {
-                model[j] = (byte) Math.hypot(fft[i], fft[i + 1]);
-                i += 2;
-                j++;
-            }
-        }
+        EventBus.getDefault().post(new FFTBean(fft));
     }
 
     @Override

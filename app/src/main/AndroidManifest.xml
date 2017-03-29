@@ -9,18 +9,18 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
-        android:name="com.yb.magicplayer.application.MagicPlayerApplication"
+        android:name=".application.MagicPlayerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.yb.magicplayer.activity.MainActivity" />
-        <activity android:name="com.yb.magicplayer.activity.MusicListActivity" />
+        <activity android:name=".activity.MainActivity" />
+        <activity android:name=".activity.MusicListActivity" />
 
-        <service android:name="com.yb.magicplayer.service.MusicPlayService" />
+        <service android:name=".service.MusicPlayService" />
 
-        <activity android:name="com.yb.magicplayer.activity.WelcomeActivity">
+        <activity android:name=".activity.WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,7 +28,11 @@
             </intent-filter>
         </activity>
 
-        <meta-data android:name="com.yb.magicplayer.utils.GlideConfigModule" android:value="GlideModule"/>
+        <meta-data
+            android:name="com.yb.magicplayer.utils.GlideConfigModule"
+            android:value="GlideModule" />
+
+        <activity android:name=".activity.PlayDetailActivity"></activity>
     </application>
 
 </manifest>

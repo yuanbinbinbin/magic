@@ -56,6 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/id_main_recent_label"
+            android:nestedScrollingEnabled="false"
             android:paddingBottom="5dp"
             android:paddingLeft="5dp"
             android:paddingRight="5dp" />
@@ -118,6 +119,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/id_main_play_list_label"
+            android:nestedScrollingEnabled="false"
             android:paddingBottom="5dp"
             android:paddingLeft="5dp"
             android:paddingRight="5dp" />

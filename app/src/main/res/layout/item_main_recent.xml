@@ -5,32 +5,39 @@
     android:orientation="vertical"
     android:padding="2dp">
 
-    <ImageView
-        android:id="@+id/id_item_main_recent_avatar"
-        android:layout_width="115dp"
-        android:layout_height="115dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_default" />
-
-    <TextView
-        android:id="@+id/id_item_main_recent_name"
+    <LinearLayout
+        android:id="@+id/id_item_main_recent_container"
         android:layout_width="match_parent"
-        android:layout_height="22dp"
-        android:layout_marginTop="5dp"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:text="Title"
-        android:textColor="#FFF"
-        android:textSize="13dp" />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/id_item_main_recent_author"
-        android:layout_width="match_parent"
-        android:layout_height="19dp"
-        android:layout_marginTop="-5dp"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:text="Artist"
-        android:textColor="#EEE"
-        android:textSize="9dp" />
+        <ImageView
+            android:id="@+id/id_item_main_recent_avatar"
+            android:layout_width="115dp"
+            android:layout_height="115dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_default" />
+
+        <TextView
+            android:id="@+id/id_item_main_recent_name"
+            android:layout_width="match_parent"
+            android:layout_height="22dp"
+            android:layout_marginTop="5dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Title"
+            android:textColor="#FFF"
+            android:textSize="13dp" />
+
+        <TextView
+            android:id="@+id/id_item_main_recent_author"
+            android:layout_width="match_parent"
+            android:layout_height="19dp"
+            android:layout_marginTop="-5dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="Artist"
+            android:textColor="#EEE"
+            android:textSize="9dp" />
+    </LinearLayout>
 </LinearLayout>
