@@ -175,8 +175,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
     @Override
     protected void initData() {
 //        startService(intent);
-        Intent intent = new Intent(this, MusicPlayService.class);
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+        bindMusicPlaySerivce();
         initBottomMusicInfo();
     }
 

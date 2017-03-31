@@ -3,11 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/color_000000">
+    <ImageView
+        android:id="@+id/id_play_detail_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
 
     <com.yb.magicplayer.view.visualizer.VisualizerView
         android:id="@+id/id_vv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        />
 
     <TextView
         android:layout_width="match_parent"

@@ -84,7 +84,8 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mVisualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, true, true);
         mVisualizer.setEnabled(false);
-        mEqualizer = new Equalizer(0, mp.getAudioSessionId());
+        mEqualizer = new Equalizer(Integer.MAX_VALUE, mp.getAudioSessionId());
+        mEqualizer.setEnabled(false);
         isPrepared = false;
     }
 
@@ -388,6 +389,11 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     @Override
     public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
+        if(fft != null){
+            for(int i = 0;i <fft.length;i++){
+                LogUtil.i("FFT",i+" : "+fft[0]);
+            }
+        }
         EventBus.getDefault().post(new FFTBean(fft));
     }
 

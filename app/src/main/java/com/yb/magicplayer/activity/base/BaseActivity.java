@@ -2,6 +2,7 @@ package com.yb.magicplayer.activity.base;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -27,7 +28,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         public void onServiceConnected(ComponentName name, IBinder service) {
             mMusicPlayBinder = (MusicPlayService.MusicPlayBinder) service;
             bindServiceSuccess();
-            LogUtil.i("BindService","bind service success");
+            LogUtil.i("BindService", "bind service success");
         }
 
         @Override
@@ -36,6 +37,12 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
         }
     };
     protected MusicPlayService.MusicPlayBinder mMusicPlayBinder;
+
+    protected void bindMusicPlaySerivce() {
+        Intent intent = new Intent(getContext(), MusicPlayService.class);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,5 +76,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     protected Context getContext() {
         return this;
     }
-    protected void bindServiceSuccess(){}
+
+    protected void bindServiceSuccess() {
+    }
 }

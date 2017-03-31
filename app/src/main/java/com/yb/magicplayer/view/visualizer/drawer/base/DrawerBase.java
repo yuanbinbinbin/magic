@@ -1,12 +1,13 @@
-package com.yb.magicplayer.view.visualizer.drawer;
+package com.yb.magicplayer.view.visualizer.drawer.base;
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 
 import com.yb.magicplayer.view.visualizer.bean.FFTBean;
 import com.yb.magicplayer.view.visualizer.bean.WaveBean;
 
-abstract public class DrawerBase {
+abstract public class DrawerBase  {
     // 用于存放波形图和频率点
     protected float[] mPoints;
     protected float[] mFFTPoints;
@@ -46,4 +47,5 @@ abstract public class DrawerBase {
         }
         onDraw(canvas, data, rect);
     }
+
 }

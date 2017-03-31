@@ -1,8 +1,5 @@
 package com.yb.magicplayer.view.visualizer;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -13,14 +10,13 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.media.MediaPlayer;
 import android.media.audiofx.Visualizer;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.yb.magicplayer.view.visualizer.bean.FFTBean;
 import com.yb.magicplayer.view.visualizer.bean.WaveBean;
-import com.yb.magicplayer.view.visualizer.drawer.DrawerBase;
+import com.yb.magicplayer.view.visualizer.drawer.base.DrawerBase;
 
 
 public class VisualizerView extends View {
