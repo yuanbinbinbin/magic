@@ -18,7 +18,7 @@ public class CircleLineDrawer extends ColorDrawerBase {
 
 
     public CircleLineDrawer(Paint paint, boolean cycleColor) {
-        this(paint, cycleColor, 0.7f, 0.5f);
+        this(paint, cycleColor, 0.7f, 0.4f);
     }
 
     public CircleLineDrawer(Paint paint, boolean cycleColor, float modulation, float aggresive) {

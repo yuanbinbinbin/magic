@@ -1,5 +1,7 @@
 package com.yb.magicplayer.activity.base;
 
+import android.os.Bundle;
+
 import com.yb.magicplayer.events.CloseEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -11,15 +13,16 @@ import org.greenrobot.eventbus.ThreadMode;
  * Created by yb on 2017/3/23.
  */
 public abstract class EventBusBaseActivity extends BaseActivity {
+
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
         EventBus.getDefault().unregister(this);
     }
 

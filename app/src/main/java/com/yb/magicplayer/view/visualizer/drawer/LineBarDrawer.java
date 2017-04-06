@@ -38,12 +38,15 @@ public class LineBarDrawer extends ColorDrawerBase {
         }
         int centerY = canvas.getHeight() / 2;
         for (int i = 0; i < data.getBytes().length / mDivisions; i++) {
-            mFFTPoints[i * 4] = (i + 1) * 3 * mDivisions ;
-            mFFTPoints[i * 4 + 2] = (i + 1) * 3 * mDivisions ;
+            mFFTPoints[i * 4] = (i + 1) * 3 * mDivisions;
+            mFFTPoints[i * 4 + 2] = (i + 1) * 3 * mDivisions;
             byte rfk = data.getBytes()[mDivisions * i];
             byte ifk = data.getBytes()[mDivisions * i + 1];
             float magnitude = (rfk * rfk + ifk * ifk);
             int dbValue = (int) (50 * Math.log10(magnitude));
+            if (dbValue < 5) {
+                dbValue = 6;
+            }
             if (LOCATION_TOP == mLocation) {
                 mFFTPoints[i * 4 + 1] = 0;
                 mFFTPoints[i * 4 + 3] = (dbValue * 2 - 10);

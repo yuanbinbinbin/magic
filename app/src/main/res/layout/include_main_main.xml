@@ -199,7 +199,7 @@
             android:paddingRight="0dp"
             android:paddingStart="0dp"
             android:progress="50"
-            android:progressDrawable="@drawable/style_seek_bar_main_play"
+            android:progressDrawable="@drawable/seek_bar_main_play"
             android:secondaryProgress="100"
             android:thumb="@null"
             android:thumbOffset="0dp" />

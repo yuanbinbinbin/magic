@@ -11,6 +11,7 @@ import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.media.audiofx.Visualizer;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -29,6 +30,20 @@ public class VisualizerView extends View {
     private Paint mFlashPaint = new Paint();
     private Paint mFadePaint = new Paint();
     private DrawerBase drawer;
+    private boolean isRenew = true;
+    private byte[] updateWaveData;
+    private byte[] updateFFTData;
+    private Handler handler = new Handler();
+    private Runnable runable = new Runnable() {
+        @Override
+        public void run() {
+            if (isRenew) {
+                updateVisualizer(updateWaveData);
+                updateVisualizerFFT(updateFFTData);
+                handler.postDelayed(runable, 100);
+            }
+        }
+    };
 
     public VisualizerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
@@ -49,6 +64,12 @@ public class VisualizerView extends View {
         mFlashPaint.setColor(Color.argb(122, 255, 255, 255));
         mFadePaint.setColor(Color.argb(238, 255, 255, 255)); // Adjust alpha to change how quickly the image fades
         mFadePaint.setXfermode(new PorterDuffXfermode(Mode.MULTIPLY));
+        updateWaveData = new byte[1024];
+        for (int i = 0; i < 1024; i++) {
+            updateWaveData[i] = (byte) 128;
+        }
+        updateFFTData = new byte[1024];
+        handler.postDelayed(runable, 100);
     }
 
     public void setDrawer(DrawerBase drawer) {
@@ -58,7 +79,6 @@ public class VisualizerView extends View {
     /**
      * Pass data to the visualizer. Typically this will be obtained from the
      * Android Visualizer.OnDataCaptureListener call back. See
-     * {@link Visualizer.OnDataCaptureListener#onWaveFormDataCapture }
      *
      * @param bytes
      */
@@ -70,7 +90,6 @@ public class VisualizerView extends View {
     /**
      * Pass FFT data to the visualizer. Typically this will be obtained from the
      * Android Visualizer.OnDataCaptureListener call back. See
-     * {@link Visualizer.OnDataCaptureListener#onFftDataCapture }
      *
      * @param bytes
      */
@@ -79,7 +98,6 @@ public class VisualizerView extends View {
         invalidate();
     }
 
-    boolean mFlash = false;
     Bitmap mCanvasBitmap;
     Canvas mCanvas;
 
@@ -108,10 +126,20 @@ public class VisualizerView extends View {
         }
         // Fade out old contents
         mCanvas.drawPaint(mFadePaint);
-        if (mFlash) {
-            mFlash = false;
-            mCanvas.drawPaint(mFlashPaint);
-        }
         canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
+    }
+
+    /**
+     * 设置是否恢复到默认状态
+     *
+     * @param isRenew
+     */
+    public void setIsRenew(boolean isRenew) {
+        this.isRenew = isRenew;
+        if (isRenew) {
+            handler.postDelayed(runable, 100);
+        } else {
+            handler.removeCallbacks(runable);
+        }
     }
 }

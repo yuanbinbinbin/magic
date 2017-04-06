@@ -199,6 +199,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
         refreshRecentMusic();
         refreshPlayList();
         refreshBottom();
+        updateMusicProgressHandler.postDelayed(updateMusicProgressRunable, DELAYED_TIME);
     }
 
     @Override
@@ -244,12 +245,9 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
     private void refreshPlayStatus(int status) {
         if (GlobalVariables.PLAY_STATUS_PLAYING == status) {
             mIvPlayStatus.setImageResource(R.drawable.ic_main_pause_white);
-            updateMusicProgressHandler.postDelayed(updateMusicProgressRunable, DELAYED_TIME);
         } else if (GlobalVariables.PLAY_STATUS_PAUSE == status) {
             mIvPlayStatus.setImageResource(R.drawable.ic_main_play_arrow_white);
-            updateMusicProgressHandler.removeCallbacks(updateMusicProgressRunable);
         } else if (GlobalVariables.PLAY_STATUS_BUFFER == status) {
-            updateMusicProgressHandler.removeCallbacks(updateMusicProgressRunable);
         }
     }
 

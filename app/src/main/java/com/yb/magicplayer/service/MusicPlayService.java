@@ -8,11 +8,14 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.audiofx.BassBoost;
 import android.media.audiofx.Equalizer;
+import android.media.audiofx.PresetReverb;
 import android.media.audiofx.Visualizer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.RemoteViews;
 
@@ -57,6 +60,8 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     private int positon;   //音乐播放的位置
     private Visualizer mVisualizer;//用于获取音乐频率
     private Equalizer mEqualizer;//用于调整音频输出的
+    private BassBoost mBassBoost;//用于重低音调整
+    private PresetReverb mPresetReverb;//预设音场控制器
     private boolean isPrepared = false;
 
     @Override
@@ -80,12 +85,18 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         mp.setOnPreparedListener(this);
         mp.setOnBufferingUpdateListener(this);
         mp.setOnInfoListener(this);
+        //初始化获取音乐频率
         mVisualizer = new Visualizer(mp.getAudioSessionId());
         mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
         mVisualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate() / 2, true, true);
-        mVisualizer.setEnabled(false);
-        mEqualizer = new Equalizer(Integer.MAX_VALUE, mp.getAudioSessionId());
-        mEqualizer.setEnabled(false);
+        //初始化均衡控制器
+        mEqualizer = new Equalizer(0, mp.getAudioSessionId());
+        //初始化重低音控制器
+        mBassBoost = new BassBoost(0, mp.getAudioSessionId());
+        //初始化预设音场控制器
+        mPresetReverb = new PresetReverb(0, mp.getAudioSessionId());
+        mPresetReverb.setPreset(PresetReverb.PRESET_NONE);
+        audiofxStatusChange(false);
         isPrepared = false;
     }
 
@@ -242,7 +253,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
             int id = intent.getIntExtra("id", -1);
             if (playingmusic != null && mp.isPlaying()) {
                 if (playingmusic.getId() == id) {
-                    mp.pause();
+                    playerPause();
                     sendNotification(SEND_NOTIFICATION_PAUSE);
                 } else {
                     positon = MediaUtils.getPositionInMusicList(GlobalVariables.playQuene, id);
@@ -252,7 +263,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
                 }
             } else {
                 if (playingmusic != null && playingmusic.getId() == id && isPrepared) {
-                    mp.start();
+                    playerStart();
                     sendNotification(SEND_NOTIFICATION_PLAY);
                 } else {
                     positon = MediaUtils.getPositionInMusicList(GlobalVariables.playQuene, id);
@@ -269,13 +280,13 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
             playMusic();
             return;
         } else if ("pause".equals(playing)) {
-            mp.pause();
+            playerPause();
             sendNotification(SEND_NOTIFICATION_PAUSE);
             return;
         } else if ("play".equals(playing)) {
             sendNotification(SEND_NOTIFICATION_PLAY);
             if (isPrepared) {
-                mp.start();
+                playerStart();
             } else {
                 playMusic();
             }
@@ -291,9 +302,38 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         } else if ("changetime".equals(playing)) {
             int time = intent.getIntExtra("time", -1);
             if (time >= 0) {
-                mp.seekTo(time * 1000);
+                mp.seekTo(time);
                 sendBroadcast(refreshTimeIntent);
             }
+        }
+    }
+
+    private void playerStart() {
+        if (mp != null) {
+            mp.start();
+        }
+        audiofxStatusChange(true);
+    }
+
+    private void playerPause() {
+        if (mp != null) {
+            mp.pause();
+        }
+        audiofxStatusChange(false);
+    }
+
+    private void audiofxStatusChange(boolean enabled) {
+        if (mVisualizer != null) {
+            mVisualizer.setEnabled(enabled);
+        }
+        if (mEqualizer != null) {
+            mEqualizer.setEnabled(enabled);
+        }
+        if (mBassBoost != null) {
+            mBassBoost.setEnabled(enabled);
+        }
+        if (mPresetReverb != null) {
+            mPresetReverb.setEnabled(enabled);
         }
     }
 
@@ -310,15 +350,12 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        if (mVisualizer != null) {
-            mVisualizer.setEnabled(false);
-            mEqualizer.setEnabled(false);
-        }
+        audiofxStatusChange(false);
         switch (GlobalVariables.playingMode) {
-            case ConfigData.PLAYING_MUSIC_MODE_ONLY:// 单曲循环
+            case ConfigData.PLAYING_MUSIC_MODE_SINGLE:// 单曲循环
                 playMusic();
                 break;
-            case ConfigData.PLAYING_MUSIC_MODE_ALL:// 顺序循环
+            case ConfigData.PLAYING_MUSIC_MODE_SEQUENCE:// 顺序循环
                 positon++;
                 positon = positon % GlobalVariables.playQuene.size();
                 playingmusic = GlobalVariables.playQuene.get(positon);
@@ -339,9 +376,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     @Override
     public void onPrepared(MediaPlayer mp) {
         isPrepared = true;
-        this.mp.start();
-        mVisualizer.setEnabled(true);
-        mEqualizer.setEnabled(true);
+        playerStart();
         sendNotification(SEND_NOTIFICATION_PLAY);
         playingId = playingmusic.getId();
         MediaUtils.savePlayingPosition(this, positon);
@@ -351,10 +386,14 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     public void releasePlayer() {
         mp.release();
-        mVisualizer.setEnabled(false);
-        mVisualizer.release();
-        mEqualizer.setEnabled(false);
-        mEqualizer.release();
+        if (mVisualizer != null) {
+            mVisualizer.setEnabled(false);
+            mVisualizer.release();
+        }
+        if (mEqualizer != null) {
+            mEqualizer.setEnabled(false);
+            mEqualizer.release();
+        }
         isPrepared = false;
         mp = null;
         mVisualizer = null;
@@ -389,11 +428,11 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
 
     @Override
     public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
-        if(fft != null){
-            for(int i = 0;i <fft.length;i++){
-                LogUtil.i("FFT",i+" : "+fft[0]);
-            }
-        }
+//        if(fft != null){
+//            for(int i = 0;i <fft.length;i++){
+//                Log.i("FFT", i + " : " + fft[i]);
+//            }
+//        }
         EventBus.getDefault().post(new FFTBean(fft));
     }
 

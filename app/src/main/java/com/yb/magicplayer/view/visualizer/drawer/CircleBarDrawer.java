@@ -1,6 +1,6 @@
 /**
  * Copyright 2011, Felix Palmer
- * <p/>
+ * <p>
  * Licensed under the MIT license:
  * http://creativecommons.org/licenses/MIT/
  */
@@ -37,13 +37,11 @@ public class CircleBarDrawer extends ColorDrawerBase {
     @Override
     public void onDraw(Canvas canvas, WaveBean data, Rect rect) {
     }
-    boolean isDrawing = false;
+
+
     @Override
     public void onDraw(Canvas canvas, FFTBean data, Rect rect) {
-        if(isDrawing){
-            return;
-        }
-        isDrawing = true;
+
         if (mCycleColor) {
             cycleColor();
         }
@@ -51,6 +49,12 @@ public class CircleBarDrawer extends ColorDrawerBase {
         for (int i = 0; i < data.getBytes().length / mDivisions; i++) {
             byte rfk = data.getBytes()[mDivisions * i];
             byte ifk = data.getBytes()[mDivisions * i + 1];
+            if (rfk == 0) {
+                rfk = 1;
+            }
+            if (ifk == 0) {
+                ifk = 1;
+            }
             float magnitude = (rfk * rfk + ifk * ifk);
             float dbValue = 150 * (float) Math.log10(magnitude);//相对高度
 
@@ -73,7 +77,6 @@ public class CircleBarDrawer extends ColorDrawerBase {
             mFFTPoints[i * 4 + 3] = polarPoint2[1];
         }
         canvas.drawLines(mFFTPoints, mPaint);
-        isDrawing =false;
     }
 
     private float[] toPolar(float[] cartesian, Rect rect) {

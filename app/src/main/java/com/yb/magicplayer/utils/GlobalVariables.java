@@ -1,6 +1,7 @@
 package com.yb.magicplayer.utils;
 
 
+import android.content.Context;
 import android.graphics.Color;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class GlobalVariables {
     public static List<Music> playQuene = new ArrayList<Music>();//播放队列
     public static int playingPosition = 0;//当前播放音乐的位置
     public static int playStatus = PLAY_STATUS_PAUSE;//当前是否在播放
-    public static int playingMode = ConfigData.PLAYING_MUSIC_MODE_ALL;//循环方式
+    public static int playingMode = ConfigData.PLAYING_MUSIC_MODE_SEQUENCE;//循环方式
     public static int themeColor = Color.parseColor("#B24242");//主题颜色
     public static final String KEY_WELCOME_CONTENT = "key_welcome_content";
     public static final String DEFAULT_WELCOME_CONTENT = "MAGIC";
@@ -44,4 +45,14 @@ public class GlobalVariables {
     public static final String KEY_PLAY_LIST = "key_play_list";
     public static final String KEY_PLAY_QUENE = "key_play_quene";
     public static final String KEY_PLAY_POSITION = "key_play_position";
+
+    public static void changePlayingMode(Context mContext) {
+        int model = playingMode;
+        model++;
+        if (model > ConfigData.PLAYING_MUSIC_MODE_RANDOM) {
+            model = ConfigData.PLAYING_MUSIC_MODE_SEQUENCE;
+        }
+        playingMode = model;
+        PreferencesUtils.savePrefInt(mContext, KEY_PLAYING_MODEL, playingMode);
+    }
 }

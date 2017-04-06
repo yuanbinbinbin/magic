@@ -3,24 +3,166 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/color_000000">
+
     <ImageView
         android:id="@+id/id_play_detail_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
 
-    <com.yb.magicplayer.view.visualizer.VisualizerView
-        android:id="@+id/id_vv"
+    <com.yb.magicplayer.weights.BlackLinearGradient
+        android:id="@+id/custom_linear_gradient"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:text="改变"
-        android:textColor="@color/color_ffffff"
-        android:textSize="15dp"
-        android:onClick="change"
-        android:gravity="center"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <com.yb.magicplayer.view.visualizer.VisualizerView
+                android:id="@+id/id_vv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="100dp"
+                android:gravity="center"
+                android:onClick="change"
+                android:text="改变"
+                android:textColor="@color/color_ffffff"
+                android:textSize="15dp" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/id_play_detail_playing_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="7dp"
+                android:layout_marginRight="7dp"
+                android:text="00:00"
+                android:textColor="#fff" />
+
+            <SeekBar
+                android:id="@+id/id_play_detail_seek_bar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:maxHeight="3dp"
+                android:minHeight="3dp"
+                android:progress="0"
+                android:progressDrawable="@drawable/seek_bar_play_detail"
+                android:secondaryProgress="0"
+                android:thumb="@drawable/seek_bar_play_detail_thumb"
+                android:thumbOffset="0dp" />
+
+            <TextView
+                android:id="@+id/id_play_detail_playing_totaltime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="7dp"
+                android:layout_marginRight="7dp"
+                android:text="00:00"
+                android:textColor="#fff" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:padding="5dp">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/id_play_detail_mode"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center_vertical"
+                android:padding="10dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/play_detail_sequence" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/id_play_detail_last"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center_vertical"
+                android:padding="5dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/play_detail_last" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/id_play_detail_play"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="5dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_play_detail_play" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/id_play_detail_next"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center_vertical"
+                android:padding="5dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/play_detail_next" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/id_play_detail_list"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center_vertical"
+                android:padding="10dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/play_detail_list" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <include layout="@layout/include_common_title_bar" />
+
 </RelativeLayout>

@@ -603,7 +603,7 @@ public class MediaUtils {
         //获取正在播放位置
         GlobalVariables.playingPosition = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAY_POSITION, 0);
         //获取播放模式、顺序播放、单曲循环、随机播放
-        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_ALL);
+        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_SEQUENCE);
         if (GlobalVariables.listRecentPlayMusic == null) {
             GlobalVariables.listRecentPlayMusic = new ArrayList<Music>();
         }
@@ -627,8 +627,6 @@ public class MediaUtils {
     /**
      * 保存最近播放列表
      *
-     * @param context
-     * @param list
      */
     public static void refreshRecentPlayList(Music music) {
         if (music == null) {
