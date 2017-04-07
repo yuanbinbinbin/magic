@@ -26,19 +26,9 @@
             android:layout_weight="1">
 
             <com.yb.magicplayer.view.visualizer.VisualizerView
-                android:id="@+id/id_vv"
+                android:id="@+id/id_play_detail_visualizer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginTop="100dp"
-                android:gravity="center"
-                android:onClick="change"
-                android:text="改变"
-                android:textColor="@color/color_ffffff"
-                android:textSize="15dp" />
         </RelativeLayout>
 
         <LinearLayout

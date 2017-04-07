@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.yb.magicplayer.utils.LogUtil;
 import com.yb.magicplayer.view.visualizer.bean.FFTBean;
 import com.yb.magicplayer.view.visualizer.bean.WaveBean;
 import com.yb.magicplayer.view.visualizer.drawer.base.DrawerBase;
@@ -26,11 +27,10 @@ public class VisualizerView extends View {
     private byte[] mBytes;
     private byte[] mFFTBytes;
     private Rect mRect = new Rect();
-
-    private Paint mFlashPaint = new Paint();
     private Paint mFadePaint = new Paint();
     private DrawerBase drawer;
-    private boolean isRenew = true;
+    private boolean isRenew = true;//是否恢复到初始状态
+    private boolean isCanDraw = true;//是否可以画
     private byte[] updateWaveData;
     private byte[] updateFFTData;
     private Handler handler = new Handler();
@@ -61,7 +61,6 @@ public class VisualizerView extends View {
     private void init() {
         mBytes = null;
         mFFTBytes = null;
-        mFlashPaint.setColor(Color.argb(122, 255, 255, 255));
         mFadePaint.setColor(Color.argb(238, 255, 255, 255)); // Adjust alpha to change how quickly the image fades
         mFadePaint.setXfermode(new PorterDuffXfermode(Mode.MULTIPLY));
         updateWaveData = new byte[1024];
@@ -74,33 +73,39 @@ public class VisualizerView extends View {
 
     public void setDrawer(DrawerBase drawer) {
         this.drawer = drawer;
+        flash();
     }
 
-    /**
-     * Pass data to the visualizer. Typically this will be obtained from the
-     * Android Visualizer.OnDataCaptureListener call back. See
-     *
-     * @param bytes
-     */
+    public void setIsCanDraw(boolean isCanDraw) {
+        this.isCanDraw = isCanDraw;
+    }
+
+    //更新Wave动画
     public void updateVisualizer(byte[] bytes) {
-        mBytes = bytes;
-        invalidate();
+        if(isCanDraw){
+            mBytes = bytes;
+            invalidate();
+        }
     }
 
-    /**
-     * Pass FFT data to the visualizer. Typically this will be obtained from the
-     * Android Visualizer.OnDataCaptureListener call back. See
-     *
-     * @param bytes
-     */
+    //更新bar状态动画
     public void updateVisualizerFFT(byte[] bytes) {
-        mFFTBytes = bytes;
-        invalidate();
+        if(isCanDraw){
+            mFFTBytes = bytes;
+            invalidate();
+        }
     }
 
     Bitmap mCanvasBitmap;
     Canvas mCanvas;
 
+    boolean mFlash = false;//是否更新界面
+
+    //更新界面
+    public void flash() {
+        mFlash = true;
+        invalidate();
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -113,6 +118,12 @@ public class VisualizerView extends View {
         }
         if (mCanvas == null) {
             mCanvas = new Canvas(mCanvasBitmap);
+        }
+        if (mFlash) {
+            Paint paint = new Paint();
+            paint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
+            mCanvas.drawPaint(paint);
+            mFlash = false;
         }
         if (mBytes != null) {
             // Render all audio renderers
@@ -129,11 +140,7 @@ public class VisualizerView extends View {
         canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
     }
 
-    /**
-     * 设置是否恢复到默认状态
-     *
-     * @param isRenew
-     */
+    // 设置是否恢复到默认状态
     public void setIsRenew(boolean isRenew) {
         this.isRenew = isRenew;
         if (isRenew) {

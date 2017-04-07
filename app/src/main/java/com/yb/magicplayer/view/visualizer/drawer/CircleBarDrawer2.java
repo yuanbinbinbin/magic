@@ -7,26 +7,24 @@
 package com.yb.magicplayer.view.visualizer.drawer;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 
 import com.yb.magicplayer.view.visualizer.bean.FFTBean;
 import com.yb.magicplayer.view.visualizer.bean.WaveBean;
 import com.yb.magicplayer.view.visualizer.drawer.base.ColorDrawerBase;
 
-public class CircleBarDrawer extends ColorDrawerBase {
+public class CircleBarDrawer2 extends ColorDrawerBase {
     private int mDivisions;
     float modulation = 0.7f;//缩放大小
     float aggresive = 0.4f;//刺的突出程度
 
-    public CircleBarDrawer(Paint paint, int divisions) {
+    public CircleBarDrawer2(Paint paint, int divisions) {
         this(paint, divisions, false);
     }
 
 
-    public CircleBarDrawer(Paint paint, int divisions, boolean cycleColor) {
+    public CircleBarDrawer2(Paint paint, int divisions, boolean cycleColor) {
         super();
         mPaint = paint;
         mDivisions = divisions;
@@ -45,22 +43,23 @@ public class CircleBarDrawer extends ColorDrawerBase {
         if (mCycleColor) {
             cycleColor();
         }
-
-        for (int i = 0; i < data.getBytes().length / mDivisions; i++) {
-            byte rfk = data.getBytes()[i * mDivisions / 2];
-            byte ifk = data.getBytes()[i * mDivisions / 2 + 1];
+        int length = data.getBytes().length;
+        for (int i = 0; i < length / mDivisions; i++) {
+            byte rfk = data.getBytes()[mDivisions * i];
+            byte ifk = data.getBytes()[mDivisions * i + 1];
             if (rfk == 0) {
                 rfk = 1;
             }
             if (ifk == 0) {
                 ifk = 1;
             }
-            float magnitude = (rfk * rfk + ifk * ifk);
-            float dbValue = 150 * (float) Math.log10(magnitude);//相对高度
-
+            // float magnitude = (rfk * rfk + ifk * ifk);
+            //byte范围为-128~127 故rfk、ifk平方再相加然后开方值的范围在0-181
+            float dbValue = (int) Math.hypot(rfk, ifk);//相对高度
+            float l = dbValue * rect.height() / 5 / 181;
             float[] cartPoint = {
                     (float) (i * mDivisions) / (data.getBytes().length - 1),
-                    rect.height() / 2
+                    rect.height() / 3
             };
 
             float[] polarPoint = toPolar(cartPoint, rect);
@@ -69,7 +68,7 @@ public class CircleBarDrawer extends ColorDrawerBase {
 
             float[] cartPoint2 = {
                     (float) (i * mDivisions) / (data.getBytes().length - 1),
-                    rect.height() / 2 + dbValue
+                    rect.height() / 3 + dbValue
             };
 
             float[] polarPoint2 = toPolar(cartPoint2, rect);
@@ -83,8 +82,7 @@ public class CircleBarDrawer extends ColorDrawerBase {
         double cX = rect.width() / 2;
         double cY = rect.height() / 2;
         double angle = (cartesian[0]) * 2 * Math.PI;
-        //  double radius = ((rect.width() / 2) * (1 - aggresive) + aggresive * cartesian[1] / 2) * ((1 - modulationStrength) + modulationStrength * (1 + Math.sin(modulation)) / 2);
-        double radius = ((rect.width() / 2) * (1 - aggresive) + aggresive * cartesian[1] / 2) * modulation;
+        double radius = cartesian[1];
         float[] out = {
                 (float) (cX + radius * Math.sin(angle)),
                 (float) (cY + radius * Math.cos(angle))

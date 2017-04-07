@@ -1,14 +1,11 @@
 package com.yb.magicplayer.activity;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.os.Handler;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -32,10 +29,12 @@ import com.yb.magicplayer.utils.ToastUtil;
 import com.yb.magicplayer.view.visualizer.VisualizerView;
 import com.yb.magicplayer.view.visualizer.bean.FFTBean;
 import com.yb.magicplayer.view.visualizer.bean.WaveBean;
+import com.yb.magicplayer.view.visualizer.drawer.CircleBarDrawer2;
 import com.yb.magicplayer.view.visualizer.drawer.LineBarDrawer;
 import com.yb.magicplayer.view.visualizer.drawer.CircleBarDrawer;
 import com.yb.magicplayer.view.visualizer.drawer.CircleLineDrawer;
 import com.yb.magicplayer.view.visualizer.drawer.LineDrawer;
+import com.yb.magicplayer.view.visualizer.drawer.base.DrawerBase;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -43,7 +42,7 @@ import org.greenrobot.eventbus.ThreadMode;
 public class PlayDetailActivity extends EventBusBaseActivity {
     private static final String TAG = "PlayDetailActivity";
 
-    private VisualizerView vv;
+    private VisualizerView mVisualizerView;
     private ImageView mIvBg;
     private TextView mTvPlayingTime;//播放时间
     private TextView mTvTotalTime;//歌曲总时间
@@ -55,6 +54,8 @@ public class PlayDetailActivity extends EventBusBaseActivity {
     private View mViewPlayList;//播放列表
     private Intent serviceIntent;//用于更改播放状态的Intent
     private boolean isCanUpdatePlayProgress;//是否可以更新播放进度，当用于拉进度条时应取消更新进度
+    private int drawerType;//动画类型
+    private boolean isOnStop;//是否回调了onStop方法
     private static int DELAYED_TIME = 1000;
     private Handler updateMusicProgressHandler = new Handler();
     private Runnable updateMusicProgressRunable = new Runnable() {
@@ -67,6 +68,7 @@ public class PlayDetailActivity extends EventBusBaseActivity {
             updateMusicProgressHandler.postDelayed(updateMusicProgressRunable, DELAYED_TIME);
         }
     };
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_play_detail;
@@ -74,8 +76,8 @@ public class PlayDetailActivity extends EventBusBaseActivity {
 
     @Override
     protected void initView() {
-        vv = (VisualizerView) findViewById(R.id.id_vv);
         initCommonView();
+        mVisualizerView = (VisualizerView) findViewById(R.id.id_play_detail_visualizer);
         mIvBg = (ImageView) findViewById(R.id.id_play_detail_bg);
         mTvPlayingTime = (TextView) findViewById(R.id.id_play_detail_playing_time);
         mTvTotalTime = (TextView) findViewById(R.id.id_play_detail_playing_totaltime);
@@ -114,10 +116,10 @@ public class PlayDetailActivity extends EventBusBaseActivity {
 
     @Override
     protected void initData() {
-        startUpdatePlayProgress();
-        type = 0;
-        change(vv);
         bindMusicPlaySerivce();
+        drawerType = DRAWER_CIRCLE_BAR;
+        changeDrawer();
+        isCanUpdatePlayProgress = false;
     }
 
     @Override
@@ -128,6 +130,7 @@ public class PlayDetailActivity extends EventBusBaseActivity {
         mViewPlayList.setOnClickListener(this);
         mViewPlayNext.setOnClickListener(this);
         mIvPlayStatus.setOnClickListener(this);
+        mVisualizerView.setOnClickListener(this);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
@@ -148,7 +151,7 @@ public class PlayDetailActivity extends EventBusBaseActivity {
                 serviceIntent.putExtra("playing", "changetime");
                 serviceIntent.putExtra("time", seekBar.getProgress());
                 startService(serviceIntent);
-                startUpdatePlayProgress();//关闭更新进度条
+                startUpdatePlayProgress();//开启更新进度条
             }
         });
     }
@@ -157,17 +160,14 @@ public class PlayDetailActivity extends EventBusBaseActivity {
         mTvPlayingTime.setText(TimeFormat.millis2mmss(millis));
     }
 
-    private void stopUpdatePlayProgress() {
-        isCanUpdatePlayProgress = false;
-    }
-    private void startUpdatePlayProgress() {
-        isCanUpdatePlayProgress = true;
-    }
-
     @Override
     public void onClick(View v) {
         super.onClick(v);
         switch (v.getId()) {
+            case R.id.id_play_detail_visualizer:
+                drawerType++;
+                changeDrawer();
+                break;
             case R.id.id_common_title_bar_back:
                 finish();
                 break;
@@ -229,28 +229,27 @@ public class PlayDetailActivity extends EventBusBaseActivity {
         startService(serviceIntent);
     }
 
-    //更改播放列表
+    //更改播放模式
     private void changeModel() {
         GlobalVariables.changePlayingMode(getContext());
         refreshPlayModel();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        refreshMusicInfo();
-    }
 
     @Override
     protected void onStart() {
         super.onStart();
-        updateMusicProgressHandler.postDelayed(updateMusicProgressRunable, DELAYED_TIME);
+        isOnStop = false;
+        mVisualizerView.setIsCanDraw(true);//可以更新界面
+        startUpdatePlayProgress();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        updateMusicProgressHandler.removeCallbacks(updateMusicProgressRunable);
+        isOnStop = true;
+        mVisualizerView.setIsCanDraw(false);//不可以更新界面
+        stopUpdatePlayProgress();
     }
 
     @Override
@@ -259,9 +258,22 @@ public class PlayDetailActivity extends EventBusBaseActivity {
         unbindService(serviceConnection);
     }
 
-    /**
-     * 更新正在播放音乐的信息
-     */
+    //不可以更新进度条
+    private void stopUpdatePlayProgress() {
+        isCanUpdatePlayProgress = false;
+        updateMusicProgressHandler.removeCallbacks(updateMusicProgressRunable);
+    }
+
+    //可以更新进度条
+    private void startUpdatePlayProgress() {
+        //Activity处于后台状态不可更新、不可多次启动、music未播放不可启动(后两个判断条件主要是因为onStop状态->onStart状态)
+        if (!isOnStop && !isCanUpdatePlayProgress && mMusicPlayBinder != null && mMusicPlayBinder.getPlayStatus() == GlobalVariables.PLAY_STATUS_PLAYING) {
+            isCanUpdatePlayProgress = true;
+            updateMusicProgressHandler.postDelayed(updateMusicProgressRunable, DELAYED_TIME);
+        }
+    }
+
+    //更新正在播放音乐的信息
     private void refreshMusicInfo() {
         Music music;
         int progress = 0;
@@ -284,9 +296,7 @@ public class PlayDetailActivity extends EventBusBaseActivity {
         refreshPlayStatus(playStatus);
     }
 
-    /**
-     * 更新正在播放音乐的信息
-     */
+    //更新正在播放音乐的信息
     private void refreshMusicInfo(Music music) {
         if (music != null) {
             ImageUtil.loadImage(getContext(), music.getImage(), mIvBg);
@@ -294,59 +304,83 @@ public class PlayDetailActivity extends EventBusBaseActivity {
             mTvTotalTime.setText(TimeFormat.millis2mmss(music.getAllTime()));
         }
     }
+
     //更新播放状态
     private void refreshPlayStatus(int status) {
         if (GlobalVariables.PLAY_STATUS_PLAYING == status) {
             mIvPlayStatus.setImageResource(R.drawable.ic_play_detail_pause);
-            vv.setIsRenew(false);
+            mVisualizerView.setIsRenew(false);
+            startUpdatePlayProgress();
         } else if (GlobalVariables.PLAY_STATUS_PAUSE == status) {
             mIvPlayStatus.setImageResource(R.drawable.ic_play_detail_play);
-            vv.setIsRenew(true);
+            mVisualizerView.setIsRenew(true);
+            stopUpdatePlayProgress();
         } else if (GlobalVariables.PLAY_STATUS_BUFFER == status) {
-            vv.setIsRenew(true);
+            mVisualizerView.setIsRenew(true);
         }
     }
+
     //更新播放进度条
     private void refreshSeekBar(int progress, int secondProgress, int maxProgress) {
         if (!isCanUpdatePlayProgress) {
             return;
         }
-        LogUtil.i(TAG, "set progress: " + progress + " secondProgress " + secondProgress+" maxProgress: "+maxProgress);
+        LogUtil.i(TAG, "set progress: " + progress + " secondProgress " + secondProgress + " maxProgress: " + maxProgress);
         mSeekBar.setMax(maxProgress);
         mSeekBar.setProgress(progress);
         mSeekBar.setSecondaryProgress(secondProgress);
     }
 
-    int type = 1;
+    private static final int DRAWER_CIRCLE_BAR = 1;
+    private static final int DRAWER_CIRCLE_LINE = 2;
+    private static final int DRAWER_LINE_BAR = 3;
+    private static final int DRAWER_LINE = 4;
+    private DrawerBase circleBarDrwder;
+    private DrawerBase circleLineDrwder;
+    private DrawerBase lineBarDrwder;
+    private DrawerBase lineDrwder;
 
-    public void change(View view) {
-        type++;
-        if (type == 4) {
-            Paint linePaint = new Paint();
-            linePaint.setStrokeWidth(3f);
-            linePaint.setAntiAlias(true);
-            linePaint.setColor(Color.argb(88, 0, 128, 255));
-            vv.setDrawer(new LineDrawer(linePaint, true));
-            type = 0;
-        } else if (type == 2) {
-            Paint paint = new Paint();
-            paint.setStrokeWidth(3f);
-            paint.setAntiAlias(true);
-            paint.setColor(Color.argb(255, 222, 92, 143));
-            vv.setDrawer(new CircleLineDrawer(paint, true));
-        } else if (type == 1) {
-            Paint paint = new Paint();
-            paint.setStrokeWidth(8f);
-            paint.setAntiAlias(true);
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN));
-            paint.setColor(Color.argb(255, 222, 92, 143));
-            vv.setDrawer(new CircleBarDrawer(paint, 8, true));
-        } else if (type == 3) {
-            Paint paint2 = new Paint();
-            paint2.setStrokeWidth(12f);
-            paint2.setAntiAlias(true);
-            paint2.setColor(Color.argb(200, 181, 111, 233));
-            vv.setDrawer(new LineBarDrawer(8, paint2, LineBarDrawer.LOCATION_BOTTOM, true));
+    public void changeDrawer() {
+        if (drawerType > DRAWER_LINE) {
+            drawerType = DRAWER_CIRCLE_BAR;
+        }
+        if (drawerType == DRAWER_CIRCLE_BAR) {
+            if (circleBarDrwder == null) {
+                Paint paint = new Paint();
+                paint.setStrokeWidth(8f);
+                paint.setAntiAlias(true);
+                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN));
+                paint.setColor(Color.argb(255, 222, 92, 143));
+                circleBarDrwder = new CircleBarDrawer(paint, 8, true);
+            }
+            mVisualizerView.setDrawer(circleBarDrwder);
+        } else if (drawerType == DRAWER_CIRCLE_LINE) {
+            if (circleLineDrwder == null) {
+                Paint paint = new Paint();
+                paint.setStrokeWidth(3f);
+                paint.setAntiAlias(true);
+                paint.setColor(Color.argb(255, 222, 92, 143));
+                circleLineDrwder = new CircleLineDrawer(paint, true);
+            }
+            mVisualizerView.setDrawer(circleLineDrwder);
+        } else if (drawerType == DRAWER_LINE_BAR) {
+            if (lineBarDrwder == null) {
+                Paint paint2 = new Paint();
+                paint2.setStrokeWidth(12f);
+                paint2.setAntiAlias(true);
+                paint2.setColor(Color.argb(200, 181, 111, 233));
+                lineBarDrwder = new LineBarDrawer(8, paint2, LineBarDrawer.LOCATION_BOTTOM, true);
+            }
+            mVisualizerView.setDrawer(lineBarDrwder);
+        } else if (drawerType == DRAWER_LINE) {
+            if (lineDrwder == null) {
+                Paint linePaint = new Paint();
+                linePaint.setStrokeWidth(3f);
+                linePaint.setAntiAlias(true);
+                linePaint.setColor(Color.argb(88, 0, 128, 255));
+                lineDrwder = new LineDrawer(linePaint, true);
+            }
+            mVisualizerView.setDrawer(lineDrwder);
         }
     }
 
@@ -358,12 +392,16 @@ public class PlayDetailActivity extends EventBusBaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refreshVisualizer(FFTBean event) {
-        vv.updateVisualizerFFT(event.getBytes());
+        if (!isOnStop) {//Activity处于后台不更新
+            mVisualizerView.updateVisualizerFFT(event.getBytes());
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void refreshVisualizer(WaveBean event) {
-        vv.updateVisualizer(event.getBytes());
+        if (!isOnStop) {//Activity处于后台不更新
+            mVisualizerView.updateVisualizer(event.getBytes());
+        }
     }
 
     /**
