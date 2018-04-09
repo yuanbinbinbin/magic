@@ -1,6 +1,6 @@
 /**
  * Copyright 2011, Felix Palmer
- * <p>
+ * <p/>
  * Licensed under the MIT license:
  * http://creativecommons.org/licenses/MIT/
  */
@@ -45,10 +45,15 @@ public class CircleBarDrawer extends ColorDrawerBase {
         if (mCycleColor) {
             cycleColor();
         }
-
-        for (int i = 0; i < data.getBytes().length / mDivisions; i++) {
-            byte rfk = data.getBytes()[i * mDivisions / 2];
-            byte ifk = data.getBytes()[i * mDivisions / 2 + 1];
+        byte[] bytes = data.getBytes();
+        int length = bytes.length;
+        int totalFor = length / mDivisions;
+        int width2 = rect.width() / 2;
+        int height2 = rect.height() / 2;
+        for (int i = 0; i < totalFor; i++) {
+            int location = i * mDivisions;
+            byte rfk = bytes[location / 2];
+            byte ifk = bytes[location / 2 + 1];
             if (rfk == 0) {
                 rfk = 1;
             }
@@ -57,34 +62,33 @@ public class CircleBarDrawer extends ColorDrawerBase {
             }
             float magnitude = (rfk * rfk + ifk * ifk);
             float dbValue = 150 * (float) Math.log10(magnitude);//相对高度
-
+            float percent = (float) location / (length - 1);
+            //计算起点坐标
             float[] cartPoint = {
-                    (float) (i * mDivisions) / (data.getBytes().length - 1),
-                    rect.height() / 2
+                    percent,
+                    height2
             };
-
-            float[] polarPoint = toPolar(cartPoint, rect);
+            float[] polarPoint = toPolar(cartPoint, width2, height2);
             mFFTPoints[i * 4] = polarPoint[0];
             mFFTPoints[i * 4 + 1] = polarPoint[1];
 
+            //计算终点坐标
             float[] cartPoint2 = {
-                    (float) (i * mDivisions) / (data.getBytes().length - 1),
-                    rect.height() / 2 + dbValue
+                    percent,
+                    height2 + dbValue
             };
-
-            float[] polarPoint2 = toPolar(cartPoint2, rect);
+            float[] polarPoint2 = toPolar(cartPoint2, width2, height2);
             mFFTPoints[i * 4 + 2] = polarPoint2[0];
             mFFTPoints[i * 4 + 3] = polarPoint2[1];
         }
         canvas.drawLines(mFFTPoints, mPaint);
     }
-
-    private float[] toPolar(float[] cartesian, Rect rect) {
-        double cX = rect.width() / 2;
-        double cY = rect.height() / 2;
-        double angle = (cartesian[0]) * 2 * Math.PI;
-        //  double radius = ((rect.width() / 2) * (1 - aggresive) + aggresive * cartesian[1] / 2) * ((1 - modulationStrength) + modulationStrength * (1 + Math.sin(modulation)) / 2);
-        double radius = ((rect.width() / 2) * (1 - aggresive) + aggresive * cartesian[1] / 2) * modulation;
+    private double totalAngle = 2 * Math.PI;
+    private float[] toPolar(float[] cartesian, float width2, float height2) {
+        double cX = width2;
+        double cY = height2;
+        double angle = (cartesian[0]) * totalAngle;
+        double radius = (width2 * (1 - aggresive) + aggresive * cartesian[1] / 2) * modulation;
         float[] out = {
                 (float) (cX + radius * Math.sin(angle)),
                 (float) (cY + radius * Math.cos(angle))

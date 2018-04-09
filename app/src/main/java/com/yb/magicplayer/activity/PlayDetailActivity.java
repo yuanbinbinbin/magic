@@ -29,7 +29,6 @@ import com.yb.magicplayer.utils.ToastUtil;
 import com.yb.magicplayer.view.visualizer.VisualizerView;
 import com.yb.magicplayer.view.visualizer.bean.FFTBean;
 import com.yb.magicplayer.view.visualizer.bean.WaveBean;
-import com.yb.magicplayer.view.visualizer.drawer.CircleBarDrawer2;
 import com.yb.magicplayer.view.visualizer.drawer.LineBarDrawer;
 import com.yb.magicplayer.view.visualizer.drawer.CircleBarDrawer;
 import com.yb.magicplayer.view.visualizer.drawer.CircleLineDrawer;
@@ -90,7 +89,8 @@ public class PlayDetailActivity extends EventBusBaseActivity {
 
         mIvTopBarBack.setVisibility(View.VISIBLE);
         mTvTopBarTitle.setVisibility(View.VISIBLE);
-        mIvTopBarRight1.setVisibility(View.GONE);
+        mIvTopBarRight1.setVisibility(View.VISIBLE);
+        mIvTopBarRight1.setImageResource(R.drawable.like_no);
         mIvTopBarRight2.setVisibility(View.GONE);
         mTvTopBarRightText.setVisibility(View.GONE);
 
@@ -131,6 +131,7 @@ public class PlayDetailActivity extends EventBusBaseActivity {
         mViewPlayNext.setOnClickListener(this);
         mIvPlayStatus.setOnClickListener(this);
         mVisualizerView.setOnClickListener(this);
+        mIvTopBarRight1.setOnClickListener(this);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
@@ -186,7 +187,14 @@ public class PlayDetailActivity extends EventBusBaseActivity {
             case R.id.id_play_detail_list:
                 showPlayList();//显示播放列表
                 break;
+            case R.id.id_common_title_bar_right1:
+                changeLikeStatus();//修改喜欢音乐状态
+                break;
         }
+    }
+    //修改喜欢音乐的状态
+    private void changeLikeStatus() {
+        
     }
 
     private void showPlayList() {
@@ -302,6 +310,11 @@ public class PlayDetailActivity extends EventBusBaseActivity {
             ImageUtil.loadImage(getContext(), music.getImage(), mIvBg);
             mTvTopBarTitle.setText(SafeConvertUtil.convertToString(music.getName(), ""));
             mTvTotalTime.setText(TimeFormat.millis2mmss(music.getAllTime()));
+            if (music.getIsLike()) {
+                mIvTopBarRight1.setImageResource(R.drawable.like_yes);
+            } else {
+                mIvTopBarRight1.setImageResource(R.drawable.like_no);
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'org.greenrobot.greendao' // apply plugin
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.0"
@@ -18,18 +18,23 @@ android {
             //混淆文件的位置
         }
     }
+    greendao {
+        schemaVersion 1//注意，数据库版本更新后，保存在里面的数据将会被清空，应注意备份恢复
+        daoPackage 'com.yb.magicplayer.db.greendao.base'//这个是生成代码保存的包名
+        targetGenDir 'src/main/java'//保存到java代码路径
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:25.1.0'
     compile files('libs/pinyin4j-2.5.0.jar')
     compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile 'com.android.support:support-v4:25.1.0'
-    compile 'com.android.support:design:25.1.0'
     compile 'com.alibaba:fastjson:1.1.56.android'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'com.github.bumptech.glide:okhttp3-integration:1.4.0@aar'
     compile 'org.greenrobot:eventbus:3.0.0'
+    compile 'org.greenrobot:greendao:3.2.2'
+    // add library
+    compile project(':baselibrary')
 }

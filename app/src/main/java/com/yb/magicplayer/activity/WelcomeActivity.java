@@ -13,7 +13,7 @@ import com.yb.magicplayer.utils.ActivityUtil;
 import com.yb.magicplayer.utils.DateUtil;
 import com.yb.magicplayer.utils.GlobalVariables;
 import com.yb.magicplayer.utils.MediaUtils;
-import com.yb.magicplayer.utils.PreferencesUtils;
+import com.base.baselibrary.utils.PreferencesUtils;
 import com.yb.magicplayer.view.shimmer.Shimmer;
 import com.yb.magicplayer.view.shimmer.ShimmerTextView;
 

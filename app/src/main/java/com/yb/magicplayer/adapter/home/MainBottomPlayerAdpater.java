@@ -1,4 +1,4 @@
-package com.yb.magicplayer.adapter;
+package com.yb.magicplayer.adapter.home;
 
 
 import android.content.Context;

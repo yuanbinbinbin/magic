@@ -10,15 +10,15 @@ import java.util.List;
 public class MusicFolder {
     private String name;
     private String path;
-    private List<LocalMusic> musics;
+    private List<Music> musics;
 
     public MusicFolder() {
         name = "";
         path = "";
-        musics = new ArrayList<LocalMusic>();
+        musics = new ArrayList<Music>();
     }
 
-    public MusicFolder(String name, String path, List<LocalMusic> musics) {
+    public MusicFolder(String name, String path, List<Music> musics) {
         this.name = name;
         this.path = path;
         this.musics = musics;
@@ -32,11 +32,11 @@ public class MusicFolder {
         this.name = name;
     }
 
-    public List<LocalMusic> getMusics() {
+    public List<Music> getMusics() {
         return musics;
     }
 
-    public void setMusics(List<LocalMusic> musics) {
+    public void setMusics(List<Music> musics) {
         this.musics = musics;
     }
 

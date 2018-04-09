@@ -1,5 +1,6 @@
 package com.yb.magicplayer.activity.base;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -74,6 +75,10 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     }
 
     protected Context getContext() {
+        return this;
+    }
+
+    protected Activity getActivity() {
         return this;
     }
 

@@ -1,236 +1,136 @@
 package com.yb.magicplayer.entity;
 
+
+import com.base.baselibrary.adapter.ItemViewTypes;
+import com.base.baselibrary.entity.BaseItem;
+
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Keep;
+import org.greenrobot.greendao.annotation.Generated;
+
 /**
  * 通用Music接口，用于最近播放、播放列表、喜欢等。
  * Created by yb on 2017/3/16.
  */
-public class Music {
+@Entity
+public class Music extends BaseItem{
     public static final int TYPE_LOCAL_MUSIC = 1;//本地音乐
     public static final int TYPE_ONLINE_MUSIC = 2;//在线音乐
-    private int type;
-    private LocalMusic localMusic;
-    private OnlineMusic onlineMusic;
-
-    public Music() {
-        type = TYPE_LOCAL_MUSIC;
-    }
-
-    public Music(int type, LocalMusic localMusic, OnlineMusic onlineMusic) {
+    @Id
+    private long id;
+    private String name;
+    private String author;
+    private int allTime;
+    private int size;
+    private String addr;
+    private int album_id;
+    private String album;
+    private String image;
+    private boolean isLike;//是否喜欢
+    private String lrc;//歌词
+    private int type;//0为本地 1为网络
+    private boolean isPlaying;//是否正在播放
+    @Keep
+    public Music(long id, String name, String author, int allTime, int size,
+            String addr, int album_id, String album, String image, boolean isLike,
+            String lrc, int type, boolean isPlaying) {
+        super(ItemViewTypes.ITEM_VIEW_TYPE_MUSIC);
+        this.id = id;
+        this.name = name;
+        this.author = author;
+        this.allTime = allTime;
+        this.size = size;
+        this.addr = addr;
+        this.album_id = album_id;
+        this.album = album;
+        this.image = image;
+        this.isLike = isLike;
+        this.lrc = lrc;
         this.type = type;
-        this.localMusic = localMusic;
-        this.onlineMusic = onlineMusic;
+        this.isPlaying = isPlaying;
     }
-
-    public int getAlbum_id() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? -1 : localMusic.getAlbum_id();
-        } else {
-            return onlineMusic == null ? -1 : onlineMusic.getAlbum_id();
-        }
+    @Keep
+    public Music() {
+        super(ItemViewTypes.ITEM_VIEW_TYPE_MUSIC);
     }
-
-    public void setAlbum_id(int album_id) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setAlbum_id(album_id);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setAlbum_id(album_id);
-            }
-        }
+    public long getId() {
+        return this.id;
     }
-
-    public int getId() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? -1 : localMusic.getId();
-        } else {
-            return onlineMusic == null ? -1 : onlineMusic.getId();
-        }
+    public void setId(long id) {
+        this.id = id;
     }
-
-    public void setId(int id) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setId(id);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setId(id);
-            }
-        }
-    }
-
-    public int getAllTime() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? -1 : localMusic.getAllTime();
-        } else {
-            return onlineMusic == null ? -1 : onlineMusic.getAllTime();
-        }
-    }
-
-    public void setAllTime(int allTime) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setAllTime(allTime);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setAllTime(allTime);
-            }
-        }
-    }
-
-    public int getSize() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? -1 : localMusic.getSize();
-        } else {
-            return onlineMusic == null ? -1 : onlineMusic.getSize();
-        }
-    }
-
-    public void setSize(int size) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setSize(size);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setSize(size);
-            }
-        }
-    }
-
     public String getName() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? "" : localMusic.getName();
-        } else {
-            return onlineMusic == null ? "" : onlineMusic.getName();
-        }
+        return this.name;
     }
-
     public void setName(String name) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setName(name);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setName(name);
-            }
-        }
+        this.name = name;
     }
-
     public String getAuthor() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? "" : localMusic.getAuthor();
-        } else {
-            return onlineMusic == null ? "" : onlineMusic.getAuthor();
-        }
+        return this.author;
     }
-
     public void setAuthor(String author) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setAuthor(author);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setAuthor(author);
-            }
-        }
+        this.author = author;
     }
-
-    public String getImage() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? "" : localMusic.getImage();
-        } else {
-            return onlineMusic == null ? "" : onlineMusic.getImage();
-        }
+    public int getAllTime() {
+        return this.allTime;
     }
-
-    public void setImage(String image) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setImage(image);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setImage(image);
-            }
-        }
+    public void setAllTime(int allTime) {
+        this.allTime = allTime;
     }
-
-    public String getAlbum() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? "" : localMusic.getAlbum();
-        } else {
-            return onlineMusic == null ? "" : onlineMusic.getAlbum();
-        }
+    public int getSize() {
+        return this.size;
     }
-
-    public void setAlbum(String album) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setAlbum(album);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setAlbum(album);
-            }
-        }
+    public void setSize(int size) {
+        this.size = size;
     }
-
     public String getAddr() {
-        if (type == TYPE_LOCAL_MUSIC) {
-            return localMusic == null ? "" : localMusic.getAddr();
-        } else {
-            return onlineMusic == null ? "" : onlineMusic.getAddr();
-        }
+        return this.addr;
     }
-
     public void setAddr(String addr) {
-        if (type == TYPE_LOCAL_MUSIC) {
-            if (localMusic != null) {
-                localMusic.setAddr(addr);
-            }
-        } else {
-            if (onlineMusic != null) {
-                onlineMusic.setAddr(addr);
-            }
-        }
+        this.addr = addr;
     }
-
+    public int getAlbum_id() {
+        return this.album_id;
+    }
+    public void setAlbum_id(int album_id) {
+        this.album_id = album_id;
+    }
+    public String getAlbum() {
+        return this.album;
+    }
+    public void setAlbum(String album) {
+        this.album = album;
+    }
+    public String getImage() {
+        return this.image;
+    }
+    public void setImage(String image) {
+        this.image = image;
+    }
+    public boolean getIsLike() {
+        return this.isLike;
+    }
+    public void setIsLike(boolean isLike) {
+        this.isLike = isLike;
+    }
+    public String getLrc() {
+        return this.lrc;
+    }
+    public void setLrc(String lrc) {
+        this.lrc = lrc;
+    }
     public int getType() {
-        return type;
+        return this.type;
     }
-
     public void setType(int type) {
         this.type = type;
     }
-
-    public LocalMusic getLocalMusic() {
-        return localMusic;
+    public boolean getIsPlaying() {
+        return this.isPlaying;
+    }
+    public void setIsPlaying(boolean isPlaying) {
+        this.isPlaying = isPlaying;
     }
 
-    public void setLocalMusic(LocalMusic localMusic) {
-        this.localMusic = localMusic;
-    }
-
-    public OnlineMusic getOnlineMusic() {
-        return onlineMusic;
-    }
-
-    public void setOnlineMusic(OnlineMusic onlineMusic) {
-        this.onlineMusic = onlineMusic;
-    }
-
-    @Override
-    public String toString() {
-        return "Music{" +
-                "type=" + type +
-                ", localMusic=" + localMusic +
-                ", onlineMusic=" + onlineMusic +
-                '}';
-    }
 }

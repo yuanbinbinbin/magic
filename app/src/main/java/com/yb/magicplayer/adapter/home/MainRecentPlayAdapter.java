@@ -1,4 +1,4 @@
-package com.yb.magicplayer.adapter;
+package com.yb.magicplayer.adapter.home;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,12 +8,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.base.baselibrary.adapter.recyclerview.RecyclerViewSingleItemBaseAdapter;
 import com.yb.magicplayer.R;
-import com.yb.magicplayer.adapter.base.RecyclerViewBaseAdapter;
 import com.yb.magicplayer.entity.Music;
 import com.yb.magicplayer.listener.OnItemClickListener;
 import com.yb.magicplayer.utils.ImageUtil;
-import com.yb.magicplayer.utils.LogUtil;
 import com.yb.magicplayer.utils.SafeConvertUtil;
 
 import java.util.List;
@@ -22,7 +21,7 @@ import java.util.List;
  * MainActivity 最近播放Adapter
  * Created by yb on 2017/3/21.
  */
-public class MainRecentPlayAdapter extends RecyclerViewBaseAdapter<Music, MainRecentPlayAdapter.ViewHolder> implements View.OnClickListener {
+public class MainRecentPlayAdapter extends RecyclerViewSingleItemBaseAdapter<Music, MainRecentPlayAdapter.ViewHolder> implements View.OnClickListener {
     private Context mContext;
     private OnItemClickListener onItemClickListener;
 

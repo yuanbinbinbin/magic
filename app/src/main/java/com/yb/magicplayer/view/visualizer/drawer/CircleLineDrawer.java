@@ -35,23 +35,26 @@ public class CircleLineDrawer extends ColorDrawerBase {
         if (mCycleColor) {
             cycleColor();
         }
-
-        for (int i = 0; i < data.getBytes().length - 1; i++) {
+        byte[] bytes = data.getBytes();
+        int length = bytes.length;
+        int totalFor = length - 1;
+        int width2 = rect.width() / 2;
+        int height2 = rect.height() / 2;
+        float percentHeight = height2 / 128;
+        for (int i = 0; i < totalFor; i++) {
             float[] cartPoint = {
-                    (float) i / (data.getBytes().length - 1),
-                    rect.height() / 2 + ((byte) (data.getBytes()[i] + 128)) * (rect.height() / 2) / 128
+                    (float) i / totalFor,
+                    height2 + ((byte) (bytes[i] + 128)) * percentHeight
             };
-
-            float[] polarPoint = toPolar(cartPoint, rect);
+            float[] polarPoint = toPolar(cartPoint, width2, height2);
             mPoints[i * 4] = polarPoint[0];
             mPoints[i * 4 + 1] = polarPoint[1];
 
             float[] cartPoint2 = {
-                    (float) (i + 1) / (data.getBytes().length - 1),
-                    rect.height() / 2 + ((byte) (data.getBytes()[i + 1] + 128)) * (rect.height() / 2) / 128
+                    (float) (i + 1) / totalFor,
+                    rect.height() / 2 + ((byte) (bytes[i + 1] + 128)) * percentHeight
             };
-
-            float[] polarPoint2 = toPolar(cartPoint2, rect);
+            float[] polarPoint2 = toPolar(cartPoint2, width2, height2);
             mPoints[i * 4 + 2] = polarPoint2[0];
             mPoints[i * 4 + 3] = polarPoint2[1];
         }
@@ -64,13 +67,13 @@ public class CircleLineDrawer extends ColorDrawerBase {
 
     float modulation = 0.7f;//缩放大小
     float aggresive = 0.4f;//刺的突出程度
-
-    private float[] toPolar(float[] cartesian, Rect rect) {
-        double cX = rect.width() / 2;
-        double cY = rect.height() / 2;
-        double angle = (cartesian[0]) * 2 * Math.PI;//Math.sin() 参数是弧度制角度，一个完整的圆的弧度是2π，所以：2π rad = 360°，1 π rad = 180°，1°=π/180° rad ，1 rad = (180/π)°≈57.30°=57°18ˊ[2]  [1]
+    private double totalAngle = 2 * Math.PI;
+    private float[] toPolar(float[] cartesian, float width2, float height2) {
+        double cX = width2;
+        double cY = height2;
+        double angle = (cartesian[0]) * totalAngle;//Math.sin() 参数是弧度制角度，一个完整的圆的弧度是2π，所以：2π rad = 360°，1 π rad = 180°，1°=π/180° rad ，1 rad = (180/π)°≈57.30°=57°18ˊ[2]  [1]
         //double radius = ((rect.width() / 2) * (1 - aggresive) + aggresive * cartesian[1] / 2) * (1.2 + Math.sin(modulation)) / 2.2;
-        double radius = ((rect.width() / 2) * (1 - aggresive) + aggresive * cartesian[1] / 2) * modulation;
+        double radius = (width2 * (1 - aggresive) + aggresive * cartesian[1] / 2) * modulation;
         float[] out = {
                 (float) (cX + radius * Math.sin(angle)),
                 (float) (cY + radius * Math.cos(angle))

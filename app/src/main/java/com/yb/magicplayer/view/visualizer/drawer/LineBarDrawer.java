@@ -36,12 +36,17 @@ public class LineBarDrawer extends ColorDrawerBase {
         if (mCycleColor) {
             cycleColor();
         }
+        byte[] bytes = data.getBytes();
+        int length = bytes.length;
+        int totalFor = length / mDivisions;
+        int height = rect.height() - 10;
         int centerY = canvas.getHeight() / 2;
-        for (int i = 0; i < data.getBytes().length / mDivisions; i++) {
-            mFFTPoints[i * 4] = (i + 1) * 3 * mDivisions;
-            mFFTPoints[i * 4 + 2] = (i + 1) * 3 * mDivisions;
-            byte rfk = data.getBytes()[mDivisions * i];
-            byte ifk = data.getBytes()[mDivisions * i + 1];
+        int temp = 3 * mDivisions;
+        for (int i = 0; i < totalFor; i++) {
+            mFFTPoints[i * 4] = (i + 1) * temp;
+            mFFTPoints[i * 4 + 2] = (i + 1) * temp;
+            byte rfk = bytes[mDivisions * i];
+            byte ifk = bytes[mDivisions * i + 1];
             float magnitude = (rfk * rfk + ifk * ifk);
             int dbValue = (int) (50 * Math.log10(magnitude));
             if (dbValue < 5) {
@@ -51,8 +56,8 @@ public class LineBarDrawer extends ColorDrawerBase {
                 mFFTPoints[i * 4 + 1] = 0;
                 mFFTPoints[i * 4 + 3] = (dbValue * 2 - 10);
             } else if (LOCATION_BOTTOM == mLocation) {
-                mFFTPoints[i * 4 + 1] = rect.height() - 10;
-                mFFTPoints[i * 4 + 3] = rect.height() - (dbValue * 2 - 10) - 10;
+                mFFTPoints[i * 4 + 1] = height;
+                mFFTPoints[i * 4 + 3] = height - (dbValue * 2 - 10);
             } else {
                 mFFTPoints[i * 4 + 1] = centerY;
                 mFFTPoints[i * 4 + 3] = centerY - (dbValue * 2 - 10);

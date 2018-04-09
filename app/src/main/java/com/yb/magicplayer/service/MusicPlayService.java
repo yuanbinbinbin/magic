@@ -51,7 +51,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
     private RemoteViews mRemoteViews;
 
     private PendingIntent mPendingIntent;
-    private int playingId;
+    private long playingId;
 
     private Intent mIntent;
     private Intent refreshTimeIntent;
@@ -380,7 +380,7 @@ public class MusicPlayService extends Service implements OnCompletionListener, V
         sendNotification(SEND_NOTIFICATION_PLAY);
         playingId = playingmusic.getId();
         MediaUtils.savePlayingPosition(this, positon);
-        MediaUtils.refreshRecentPlayList(playingmusic);
+        MediaUtils.addMusic2RecentPlayList(playingmusic);
         EventBus.getDefault().post(new RefreshRecentPlayListEvent());
     }
 

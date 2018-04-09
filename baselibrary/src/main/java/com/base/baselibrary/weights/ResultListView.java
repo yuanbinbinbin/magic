@@ -1,4 +1,4 @@
-package com.yb.magicplayer.weights;
+package com.base.baselibrary.weights;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -17,12 +17,13 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.base.baselibrary.R;
+import com.base.baselibrary.utils.PreferencesUtils;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.yb.magicplayer.R;
-import com.yb.magicplayer.utils.PreferencesUtils;
 
 /**
  * ListView<br>

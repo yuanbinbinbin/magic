@@ -1,4 +1,4 @@
-package com.yb.magicplayer.adapter;
+package com.yb.magicplayer.adapter.home;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.base.baselibrary.adapter.recyclerview.RecyclerViewSingleItemBaseAdapter;
 import com.yb.magicplayer.R;
-import com.yb.magicplayer.adapter.base.RecyclerViewBaseAdapter;
 import com.yb.magicplayer.entity.Music;
 import com.yb.magicplayer.entity.PlayList;
 import com.yb.magicplayer.utils.ImageUtil;
@@ -21,7 +21,7 @@ import java.util.List;
  * MainActivity 播放列表Adapter
  * Created by yb on 2017/3/22.
  */
-public class MainPlayListAdapter extends RecyclerViewBaseAdapter<PlayList, MainPlayListAdapter.ViewHolder> {
+public class MainPlayListAdapter extends RecyclerViewSingleItemBaseAdapter<PlayList, MainPlayListAdapter.ViewHolder> {
     private Context mContext;
 
     public MainPlayListAdapter(Context context, List<PlayList> list) {
@@ -51,8 +51,8 @@ public class MainPlayListAdapter extends RecyclerViewBaseAdapter<PlayList, MainP
                     }
                 }
             }
-            holder.mTvTitle.setText(SafeConvertUtil.convertToString(playList.getName(),""));
-            holder.mTvCount.setText(SafeConvertUtil.convertToString(playList.getCount(),"0")+" Song");
+            holder.mTvTitle.setText(SafeConvertUtil.convertToString(playList.getName(), ""));
+            holder.mTvCount.setText(playList.getPlayList().size() + " Song");
         }
     }
 

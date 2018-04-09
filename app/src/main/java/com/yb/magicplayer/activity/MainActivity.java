@@ -22,10 +22,9 @@ import java.util.List;
 
 import com.yb.magicplayer.R;
 import com.yb.magicplayer.activity.base.EventBusBaseActivity;
-import com.yb.magicplayer.adapter.MainBottomPlayerAdpater;
-import com.yb.magicplayer.adapter.MainPlayListAdapter;
-import com.yb.magicplayer.adapter.MainRecentPlayAdapter;
-import com.yb.magicplayer.entity.LocalMusic;
+import com.yb.magicplayer.adapter.home.MainBottomPlayerAdpater;
+import com.yb.magicplayer.adapter.home.MainPlayListAdapter;
+import com.yb.magicplayer.adapter.home.MainRecentPlayAdapter;
 import com.yb.magicplayer.entity.Music;
 import com.yb.magicplayer.events.PlayingMusicChangeEvent;
 import com.yb.magicplayer.events.PlayingStatusChangeEvent;
@@ -149,7 +148,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
      * 刷新header图片
      */
     public void refreshHeaderViews() {
-        List<LocalMusic> localMusicList = GlobalVariables.listLocalMusic;
+        List<Music> localMusicList = GlobalVariables.listLocalMusic;
         if (localMusicList == null || localMusicList.size() <= 0) {
             for (int i = 0; i < 10; i++) {
                 headerViews[i].setImageResource(R.drawable.ic_default);
@@ -161,7 +160,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
             if (i >= size) {
                 headerViews[i].setImageResource(R.drawable.ic_default);
             } else {
-                LocalMusic localMusic = localMusicList.get(i);
+                Music localMusic = localMusicList.get(i);
                 if (localMusic != null) {
                     ImageUtil.loadImage(this, localMusic.getImage(), headerViews[i]);
                 } else {
@@ -343,7 +342,7 @@ public class MainActivity extends EventBusBaseActivity implements NavigationView
         });
     }
 
-    private void playMusicByMusicId(int id) {
+    private void playMusicByMusicId(long id) {
         Intent intent = new Intent(getContext(), MusicPlayService.class);
         intent.putExtra("playing", "playingbyid");
         intent.putExtra("id", id);

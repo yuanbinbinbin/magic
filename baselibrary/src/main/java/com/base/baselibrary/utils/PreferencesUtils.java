@@ -1,4 +1,4 @@
-package com.yb.magicplayer.utils;
+package com.base.baselibrary.utils;
 
 
 import android.content.Context;

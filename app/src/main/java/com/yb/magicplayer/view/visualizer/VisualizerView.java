@@ -82,7 +82,7 @@ public class VisualizerView extends View {
 
     //更新Wave动画
     public void updateVisualizer(byte[] bytes) {
-        if(isCanDraw){
+        if (isCanDraw) {
             mBytes = bytes;
             invalidate();
         }
@@ -90,7 +90,7 @@ public class VisualizerView extends View {
 
     //更新bar状态动画
     public void updateVisualizerFFT(byte[] bytes) {
-        if(isCanDraw){
+        if (isCanDraw) {
             mFFTBytes = bytes;
             invalidate();
         }
@@ -125,12 +125,12 @@ public class VisualizerView extends View {
             mCanvas.drawPaint(paint);
             mFlash = false;
         }
-        if (mBytes != null) {
+        if (mBytes != null && mBytes.length > 0) {
             // Render all audio renderers
             WaveBean audioData = new WaveBean(mBytes);
             drawer.draw(mCanvas, audioData, mRect);
         }
-        if (mFFTBytes != null) {
+        if (mFFTBytes != null && mFFTBytes.length > 0) {
             // Render all FFT renderers
             FFTBean fftData = new FFTBean(mFFTBytes);
             drawer.draw(mCanvas, fftData, mRect);

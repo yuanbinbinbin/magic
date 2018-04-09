@@ -1,21 +1,19 @@
-package com.yb.magicplayer.adapter.base;
+package com.base.baselibrary.adapter.recyclerview;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * RecyclerView Adapter Base
- * Created by yb on 2017/3/21.
+ * 适用于item单一的RecyclerView
+ * Created by yb on 2017/8/18.
  */
-public abstract class RecyclerViewBaseAdapter<T, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
+public abstract class RecyclerViewSingleItemBaseAdapter<T, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
     protected List<T> mList;
 
-    public RecyclerViewBaseAdapter(List<T> list) {
+    public RecyclerViewSingleItemBaseAdapter(List<T> list) {
         super();
         mList = list;
     }
@@ -25,6 +23,7 @@ public abstract class RecyclerViewBaseAdapter<T, VH extends RecyclerView.ViewHol
      *
      * @param list
      */
+    //设置数据
     public void setData(List<T> list) {
         mList = list;
         notifyDataSetChanged();
@@ -35,6 +34,7 @@ public abstract class RecyclerViewBaseAdapter<T, VH extends RecyclerView.ViewHol
      *
      * @param list
      */
+    //添加数据
     public void addData(List<T> list) {
         if (list == null || list.size() <= 0) {
             return;
@@ -54,6 +54,7 @@ public abstract class RecyclerViewBaseAdapter<T, VH extends RecyclerView.ViewHol
      *
      * @param item
      */
+    //添加数据
     public void addData(T item) {
         if (item == null) {
             return;
@@ -62,23 +63,6 @@ public abstract class RecyclerViewBaseAdapter<T, VH extends RecyclerView.ViewHol
             mList = new ArrayList<T>();
         }
         mList.add(item);
-        notifyDataSetChanged();
-    }
-
-    /**
-     * 在指定位置添加一条数据
-     *
-     * @param item
-     * @param position
-     */
-    public void insertDataAtPosition(T item, int position) {
-        if (position < 0 || item == null || position > getItemCount()) {
-            return;
-        }
-        if (mList == null) {
-            mList = new ArrayList<T>();
-        }
-        mList.add(position, item);
         notifyDataSetChanged();
     }
 

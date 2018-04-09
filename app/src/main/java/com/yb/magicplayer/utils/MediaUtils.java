@@ -19,21 +19,29 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Date;
 import java.util.List;
 
-import com.yb.magicplayer.application.MagicPlayerApplication;
+import com.base.baselibrary.utils.PreferencesUtils;
+import com.yb.magicplayer.db.greendao.base.RecentPlayDao;
+import com.yb.magicplayer.db.greendao.managers.LikeMusicManager;
+import com.yb.magicplayer.db.greendao.managers.MusicManager;
+import com.yb.magicplayer.db.greendao.managers.PlayListManager;
+import com.yb.magicplayer.db.greendao.managers.PlayingQueneManager;
+import com.yb.magicplayer.db.greendao.managers.RecentPlayManager;
 import com.yb.magicplayer.entity.Album;
 import com.yb.magicplayer.entity.Artist;
-import com.yb.magicplayer.entity.LocalMusic;
+import com.yb.magicplayer.entity.LikeMusic;
 import com.yb.magicplayer.entity.Music;
 import com.yb.magicplayer.entity.MusicFolder;
 import com.yb.magicplayer.entity.PlayList;
+import com.yb.magicplayer.entity.PlayingQuene;
+import com.yb.magicplayer.entity.RecentPlay;
 
 public class MediaUtils {
 
-    public static List<LocalMusic> getLocalMusics(Context mContext) {
-        List<LocalMusic> mList = new ArrayList<LocalMusic>();
+    public static List<Music> getLocalMusics(Context mContext) {
+        List<Music> mList = new ArrayList<Music>();
         Cursor mCursor = mContext.getContentResolver().query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 ConfigData.media_music_info, null, null,
@@ -43,11 +51,11 @@ public class MediaUtils {
         mCursor.moveToFirst();
         for (int i = 0; i < mCursor.getCount(); i++) {
             if (mCursor.getInt(4) > ConfigData.MUSIC_SIZE_MIN) {
-                LocalMusic mLocalMusic = new LocalMusic(mCursor.getInt(0),
+                Music mLocalMusic = new Music(mCursor.getInt(0),
                         mCursor.getString(1), mCursor.getString(2),
                         mCursor.getInt(3), mCursor.getInt(4),
                         mCursor.getString(5), mCursor.getInt(6),
-                        mCursor.getString(7), getMusicImgUrl(mCursor.getInt(0), mCursor.getInt(6)));
+                        mCursor.getString(7), getMusicImgUrl(mCursor.getInt(0), mCursor.getInt(6)), false, "", 0, false);
                 mList.add(mLocalMusic);
             }
             mCursor.moveToNext();
@@ -68,7 +76,7 @@ public class MediaUtils {
         }
     }
 
-    public static List<LocalMusic> PaiXuByZMu(List<LocalMusic> list) {
+    public static List<Music> PaiXuByZMu(List<Music> list) {
         int num[] = new int[27];
         for (int i = 0; i < 27; i++)
             num[i] = 0;
@@ -197,7 +205,7 @@ public class MediaUtils {
                 num[i] += num[i - 1];
             }
         }
-        List<LocalMusic> musics = new ArrayList<LocalMusic>();
+        List<Music> musics = new ArrayList<Music>();
         for (int i = 0; i < list.size(); i++)
             musics.add(null);
         for (int i = 0; i < list.size(); i++) {
@@ -398,7 +406,7 @@ public class MediaUtils {
         return musics;
     }
 
-    public static int getPositionInLocalMusicList(List<LocalMusic> list, int id) {
+    public static int getPositionInLocalMusicList(List<Music> list, int id) {
         int position;
         if (list == null || list.size() <= 0) {
             return -1;
@@ -409,7 +417,7 @@ public class MediaUtils {
         return -1;
     }
 
-    public static int getPositionInMusicList(List<Music> list, int id) {
+    public static int getPositionInMusicList(List<Music> list, long id) {
         int position;
         if (list == null || list.size() <= 0) {
             return -1;
@@ -418,35 +426,13 @@ public class MediaUtils {
             if (list.get(i).getId() == id)
                 return i;
         return -1;
-    }
-
-    public static void addMusic2PlayQuene(Music music) {
-        if (music == null) {
-            return;
-        }
-        if (GlobalVariables.playQuene == null) {
-            GlobalVariables.playQuene = new ArrayList<Music>();
-        }
-        if (GlobalVariables.playQuene.size() <= 0) {
-            if (GlobalVariables.listLocalMusic != null && GlobalVariables.listLocalMusic.size() > 0) {
-                for (LocalMusic localMusic : GlobalVariables.listLocalMusic) {
-                    GlobalVariables.playQuene.add(SafeConvertUtil.localMusic2Music(localMusic));
-                }
-            }
-        }
-        if (getPositionInMusicList(GlobalVariables.playQuene, music.getId()) < 0) {
-            GlobalVariables.playQuene.add(music);
-        }
-        if (MagicPlayerApplication.applicationContext != null) {
-            savePlayQuene(MagicPlayerApplication.applicationContext, GlobalVariables.playQuene);
-        }
     }
 
     public static Bitmap getArtwork(Context context, long song_id, long album_id,
                                     boolean allowdefault) {
         if (album_id < 0) {
-            // This is something that is not in the database, so get the album art directly  
-            // from the file.  
+            // This is something that is not in the database, so get the album art directly
+            // from the file.
             if (song_id >= 0) {
                 Bitmap bm = getArtworkFromFile(context, song_id, -1);
                 if (bm != null) {
@@ -482,8 +468,8 @@ public class MediaUtils {
                 } else
                     return temp;
             } catch (FileNotFoundException ex) {
-                // The album art thumbnail does not actually exist. Maybe the user deleted it, or  
-                // maybe it never existed to begin with.  
+                // The album art thumbnail does not actually exist. Maybe the user deleted it, or
+                // maybe it never existed to begin with.
                 Bitmap bm = getArtworkFromFile(context, song_id, album_id);
                 if (bm != null) {
                     if (bm.getConfig() == null) {
@@ -575,10 +561,11 @@ public class MediaUtils {
     /**
      * 更新本地音乐库
      */
+    //更新本地音乐库
     public static void refreshLocalMusic(Context context) {
         GlobalVariables.listLocalMusic = getLocalMusics(context);
         if (GlobalVariables.listLocalMusic == null) {
-            GlobalVariables.listLocalMusic = new ArrayList<LocalMusic>();
+            GlobalVariables.listLocalMusic = new ArrayList<Music>();
         }
     }
 
@@ -587,68 +574,132 @@ public class MediaUtils {
      *
      * @param context
      */
+    //初始话保存在本地的信息
     public static void initSavedData(Context context) {
-        //获取最近播放列表
-        String s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_RECENT_PLAY, "");
-        GlobalVariables.listRecentPlayMusic = FastJsonUtil.parseArray(s, Music.class);//最近播放音乐列表
-        //获取喜欢列表
-        s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_LIKED_MUSIC, "");
-        GlobalVariables.listLikedMusic = FastJsonUtil.parseArray(s, Music.class);
-        //获取播放列表
-        s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_PLAY_LIST);
-        GlobalVariables.listPlayList = FastJsonUtil.parseArray(s, PlayList.class);
-        //获取正在播放列表
-        s = PreferencesUtils.loadPrefString(context, GlobalVariables.KEY_PLAY_QUENE);
-        GlobalVariables.playQuene = FastJsonUtil.parseArray(s, Music.class);
-        //获取正在播放位置
-        GlobalVariables.playingPosition = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAY_POSITION, 0);
-        //获取播放模式、顺序播放、单曲循环、随机播放
-        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_SEQUENCE);
-        if (GlobalVariables.listRecentPlayMusic == null) {
-            GlobalVariables.listRecentPlayMusic = new ArrayList<Music>();
+        MusicManager musicManager = new MusicManager();
+        List<Music> savedMusic = musicManager.loadAll();
+        if (savedMusic == null) {
+            savedMusic = new ArrayList<Music>();
         }
-        if (GlobalVariables.listLikedMusic == null) {
-            GlobalVariables.listLikedMusic = new ArrayList<Music>();
-        }
-        //如果正在播放列表为空，则默认为播放本地列表
-        if (GlobalVariables.playQuene == null) {
-            GlobalVariables.playQuene = new ArrayList<Music>();
-            for (LocalMusic localMusic : GlobalVariables.listLocalMusic) {
-                if (localMusic != null) {
-                    GlobalVariables.playQuene.add(SafeConvertUtil.localMusic2Music(localMusic));
+        //向自己的数据库中添加本地新加的音乐
+        for (Music music : GlobalVariables.listLocalMusic) {
+            if (music != null) {
+                boolean isExist = false;
+                for (Music music2 : savedMusic) {
+                    if (music2 != null) {
+                        if (music2.getId() == music.getId()) {
+                            musicCopy(music, music2);
+                            musicManager.update(music2);
+                        }
+                        isExist = true;
+                    }
+                }
+                if (!isExist) {
+                    musicManager.insert(music);
                 }
             }
         }
+        //向自己的数据库中去除掉已经删除的音乐
+        for (Music music : savedMusic) {
+            if (music != null) {
+                boolean isExist = false;
+                for (Music music2 : GlobalVariables.listLocalMusic) {
+                    if (music2 != null) {
+                        if (music2.getId() == music.getId()) {
+                            isExist = true;
+                            break;
+                        }
+                    }
+                }
+                if (!isExist) {
+                    musicManager.delete(music);
+                }
+            }
+        }
+
+        //获取最近播放列表
+        RecentPlayManager recentPlayManager = new RecentPlayManager();
+        List<RecentPlay> recentPlays = recentPlayManager.getQueryBuilder().orderDesc(RecentPlayDao.Properties.PlayTime).list();
+        if (GlobalVariables.listRecentPlayMusic == null) {
+            GlobalVariables.listRecentPlayMusic = new ArrayList<Music>();
+        }
+        if (recentPlays != null) {
+            for (RecentPlay recentPlay : recentPlays) {
+                if (recentPlay != null && recentPlay.getMusic() != null) {
+                    GlobalVariables.listRecentPlayMusic.add(recentPlay.getMusic());
+                }
+            }
+        }
+
+        //获取喜欢列表
+        LikeMusicManager likeMusicManager = new LikeMusicManager();
+        List<LikeMusic> likeMusics = likeMusicManager.loadAll();
+        if (GlobalVariables.listLikedMusic == null) {
+            GlobalVariables.listLikedMusic = new ArrayList<Music>();
+        }
+        if (likeMusics != null) {
+            for (LikeMusic likeMusic : likeMusics) {
+                if (likeMusic != null && likeMusic.getMusic() != null) {
+                    GlobalVariables.listLikedMusic.add(likeMusic.getMusic());
+                }
+            }
+        }
+
+        //获取播放列表
+        PlayListManager playListManager = new PlayListManager();
+        GlobalVariables.listPlayList = playListManager.loadAll();
         if (GlobalVariables.listPlayList == null) {
             GlobalVariables.listPlayList = new ArrayList<PlayList>();
         }
+        //获取正在播放列表
+        PlayingQueneManager playingQueneManager = new PlayingQueneManager();
+        PlayingQuene playingQuene = playingQueneManager.selectByPrimaryKey((long) 1);
+        if (playingQuene != null && playingQuene.getPlayQuene() != null) {
+            GlobalVariables.playQuene = playingQuene.getPlayQuene();
+        }
+
+        //如果正在播放列表为空，则默认为播放本地列表
+        if (GlobalVariables.playQuene == null || GlobalVariables.playQuene.size() <= 0) {
+            GlobalVariables.playQuene = new ArrayList<Music>();
+            for (Music localMusic : GlobalVariables.listLocalMusic) {
+                if (localMusic != null) {
+                    GlobalVariables.playQuene.add(localMusic);
+                }
+            }
+            savePlayQuene(GlobalVariables.playQuene);
+        }
+
+        //获取正在播放位置
+        GlobalVariables.playingPosition = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAY_POSITION, 0);
+        //获取正在播放音乐的id
+        GlobalVariables.playingMusicId = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAY_ID, -1);
+
+        //获取播放模式、顺序播放、单曲循环、随机播放
+        GlobalVariables.playingMode = PreferencesUtils.loadPrefInt(context, GlobalVariables.KEY_PLAYING_MODEL, ConfigData.PLAYING_MUSIC_MODE_SEQUENCE);
     }
 
     /**
-     * 保存最近播放列表
-     *
+     * 刷新最近播放列表
      */
-    public static void refreshRecentPlayList(Music music) {
+    //刷新最近播放列表
+    public static void addMusic2RecentPlayList(Music music) {
         if (music == null) {
             return;
         }
+        RecentPlayManager recentPlayManager = new RecentPlayManager();
         int position = getPositionInMusicList(GlobalVariables.listRecentPlayMusic, music.getId());
         if (position >= 0) {
             GlobalVariables.listRecentPlayMusic.remove(position);
         }
         GlobalVariables.listRecentPlayMusic.add(0, music);
-        saveRecentPlayList(MagicPlayerApplication.applicationContext, GlobalVariables.listRecentPlayMusic);
-    }
-
-    /**
-     * 保存最近播放列表
-     *
-     * @param context
-     * @param list
-     */
-    public static void saveRecentPlayList(Context context, List<Music> list) {
-        String s = FastJsonUtil.toJsonString(list);
-        PreferencesUtils.savePrefString(context, GlobalVariables.KEY_RECENT_PLAY, s);
+        RecentPlay recentPlay = recentPlayManager.selectByPrimaryKey(music.getId());
+        if (recentPlay == null) {
+            recentPlay = new RecentPlay();
+            recentPlay.setMusic(music);
+            recentPlay.setMusicId(music.getId());
+        }
+        recentPlay.setPlayTime(new Date());
+        recentPlayManager.insertOrReplace(recentPlay);
     }
 
     /**
@@ -657,31 +708,61 @@ public class MediaUtils {
      * @param context
      * @param list
      */
-    public static void saveLikedMusic(Context context, List<Music> list) {
-        String s = FastJsonUtil.toJsonString(list);
-        PreferencesUtils.savePrefString(context, GlobalVariables.KEY_LIKED_MUSIC, s);
+    //保存喜欢列表
+    public static void addMusic2Like(Music music) {
+        if (music == null) {
+            return;
+        }
+        if (GlobalVariables.listLikedMusic == null) {
+            GlobalVariables.listLikedMusic = new ArrayList<Music>();
+        }
+        if (getPositionInMusicList(GlobalVariables.listLikedMusic, music.getId()) > 0) {
+            return;
+        }
+        GlobalVariables.listLikedMusic.add(music);
+        LikeMusicManager likeMusicManager = new LikeMusicManager();
+        LikeMusic likeMusic = new LikeMusic();
+        likeMusic.setMusic(music);
+        likeMusicManager.insertOrReplace(likeMusic);
     }
 
-    /**
-     * 保存播放列表
-     *
-     * @param context
-     * @param list
-     */
-    public static void savePlayList(Context context, List<PlayList> list) {
-        String s = FastJsonUtil.toJsonString(list);
-        PreferencesUtils.savePrefString(context, GlobalVariables.KEY_PLAY_LIST, s);
-    }
 
     /**
      * 保存正在播放队列
      *
-     * @param context
      * @param list
      */
-    public static void savePlayQuene(Context context, List<Music> list) {
-        String s = FastJsonUtil.toJsonString(list);
-        PreferencesUtils.savePrefString(context, GlobalVariables.KEY_PLAY_QUENE, s);
+    //保存正在播放队列
+    public static void savePlayQuene(List<Music> list) {
+        PlayingQueneManager playingQueneManager = new PlayingQueneManager();
+        PlayingQuene playingQuene = playingQueneManager.selectByPrimaryKey(1L);
+        if (playingQuene == null) {
+            playingQuene = new PlayingQuene();
+        }
+        playingQuene.setPlayQuene(list);
+        playingQueneManager.insertOrReplace(playingQuene);
+    }
+
+    /**
+     * 向播放队列中添加音乐
+     */
+    //向播放队列中添加音乐
+    public static void addMusic2PlayQuene(Music music) {
+        if (music == null) {
+            return;
+        }
+        if (GlobalVariables.playQuene == null) {
+            GlobalVariables.playQuene = new ArrayList<Music>();
+        }
+        if (GlobalVariables.playQuene.size() <= 0) {
+            if (GlobalVariables.listLocalMusic != null && GlobalVariables.listLocalMusic.size() > 0) {
+                for (Music localMusic : GlobalVariables.listLocalMusic) {
+                    GlobalVariables.playQuene.add(localMusic);
+                }
+            }
+        }
+        GlobalVariables.playQuene.add(music);
+        savePlayQuene(GlobalVariables.playQuene);
     }
 
     /**
@@ -690,6 +771,7 @@ public class MediaUtils {
      * @param context
      * @param position
      */
+    //保存正在播放的位置
     public static void savePlayingPosition(Context context, int position) {
         GlobalVariables.playingPosition = position;
         PreferencesUtils.savePrefInt(context, GlobalVariables.KEY_PLAY_POSITION, position);
@@ -701,6 +783,7 @@ public class MediaUtils {
      * @param context
      * @param model
      */
+    //保存正在播放的模式
     public static void savePlayModel(Context context, int model) {
         PreferencesUtils.savePrefInt(context, GlobalVariables.KEY_PLAYING_MODEL, model);
     }
@@ -715,9 +798,9 @@ public class MediaUtils {
         if (GlobalVariables.listFolder == null) {
             GlobalVariables.listFolder = new ArrayList<MusicFolder>();
         }
-        for (LocalMusic localMusic : GlobalVariables.listLocalMusic) {
+        for (Music localMusic : GlobalVariables.listLocalMusic) {
             if (localMusic != null) {
-                Music music = SafeConvertUtil.localMusic2Music(localMusic);
+                Music music = localMusic;
                 boolean isAdded = false;
                 //将music添加到相应的专辑中
                 for (Album album : GlobalVariables.listAlbum) {
@@ -792,19 +875,19 @@ public class MediaUtils {
         return -1;
     }
 
-    public static int isExist(List<LocalMusic> list, LocalMusic music) {
-        if (list == null || list.size() <= 0) {
-            return -1;
-        } else {
-            int position = 0;
-            for (LocalMusic m : list) {
-                if (m.getName() != null && m.getName().equals(music.getName())) {
-                    return position;
-                }
-                position++;
-            }
+    public static void musicCopy(Music from, Music to) {
+        if (from == null || to == null) {
+            return;
         }
-        return -1;
+        to.setSize(from.getSize());
+        to.setAddr(from.getAddr());
+        to.setAlbum(from.getAlbum());
+        to.setAlbum_id(from.getAlbum_id());
+        to.setAllTime(from.getAllTime());
+        to.setAuthor(from.getAuthor());
+        to.setImage(from.getImage());
+        to.setName(from.getName());
+        to.setType(from.getType());
     }
 }
 

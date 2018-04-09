@@ -21,6 +21,7 @@ public class ConfigData {
             MediaStore.Audio.Media.ALBUM};
 
     public static String IMAGE_CACHE_FILE_NAME = "image_cache";//本地缓存图片的文件夹名
+    public static String SAVE_DATA = "magic/data/";//公共文件夹
     public static int IMAGE_CACHE_DISK_FILE_SIZE = 52428800;//本地缓存图片的大小 50*1024*1024 = 52428800
     public static int IMAGE_CACHE_MEMORY_SIZE = 2097152;//内存缓存图片的大小 2*1024*1024 = 2097152
 }
